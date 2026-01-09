@@ -5,7 +5,7 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 
 ## Quick Reference
 - **Current Phase**: Part 1 - Data Import and Modeling
-- **Dataset**: GTFS export in `export/` folder (796 MB stop_times.txt!)
+- **Dataset**: GTFS export in `export/` folder (796 MB stop_times.csv!)
 - **Target Databases**: PostgreSQL (relational) + Neo4j (graph)
 - **Documentation**: See `docs/` folder for detailed guides
 
@@ -87,7 +87,7 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 ### Dataset Characteristics
 - **Transport network**: Perfect for graph algorithms (paths, connectivity)
 - **Numeric edges**: travel_time, transfer_time, traversal_time
-- **Large scale**: 796 MB stop_times.txt (may need subsetting)
+- **Large scale**: 796 MB stop_times.csv (may need subsetting)
 - **Real-world**: IDFM Île-de-France public transport
 
 ## When Working With Claude

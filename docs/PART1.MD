@@ -133,15 +133,15 @@ CREATE INDEX route_type FOR (r:Route) ON (r.route_type);
 
 ### PostgreSQL: COPY Command
 ```sql
-\COPY agency FROM './export/agency.txt' CSV HEADER;
-\COPY calendar FROM './export/calendar.txt' CSV HEADER;
-\COPY calendar_dates FROM './export/calendar_dates.txt' CSV HEADER;
-\COPY routes FROM './export/routes.txt' CSV HEADER;
-\COPY stops FROM './export/stops.txt' CSV HEADER;
-\COPY trips FROM './export/trips.txt' CSV HEADER;
-\COPY transfers FROM './export/transfers.txt' CSV HEADER;
-\COPY pathways FROM './export/pathways.txt' CSV HEADER;
-\COPY stop_times FROM './export/stop_times.txt' CSV HEADER;  -- WARNING: 796 MB!
+\COPY agency FROM './export/agency.csv' CSV HEADER;
+\COPY calendar FROM './export/calendar.csv' CSV HEADER;
+\COPY calendar_dates FROM './export/calendar_dates.csv' CSV HEADER;
+\COPY routes FROM './export/routes.csv' CSV HEADER;
+\COPY stops FROM './export/stops.csv' CSV HEADER;
+\COPY trips FROM './export/trips.csv' CSV HEADER;
+\COPY transfers FROM './export/transfers.csv' CSV HEADER;
+\COPY pathways FROM './export/pathways.csv' CSV HEADER;
+\COPY stop_times FROM './export/stop_times.csv' CSV HEADER;  -- WARNING: 796 MB!
 ```
 
 ### Neo4j: LOAD CSV with Batching
@@ -149,7 +149,7 @@ CREATE INDEX route_type FOR (r:Route) ON (r.route_type);
 **Step 1: Load Nodes (Create constraints first!)**
 ```cypher
 // Agencies
-LOAD CSV WITH HEADERS FROM 'file:///agency.txt' AS row
+LOAD CSV WITH HEADERS FROM 'file:///agency.csv' AS row
 CREATE (:Agency {
   agency_id: row.agency_id,
   agency_name: row.agency_name,
@@ -158,7 +158,7 @@ CREATE (:Agency {
 });
 
 // Routes
-LOAD CSV WITH HEADERS FROM 'file:///routes.txt' AS row
+LOAD CSV WITH HEADERS FROM 'file:///routes.csv' AS row
 CREATE (:Route {
   route_id: row.route_id,
   agency_id: row.agency_id,
@@ -169,7 +169,7 @@ CREATE (:Route {
 });
 
 // Stops
-LOAD CSV WITH HEADERS FROM 'file:///stops.txt' AS row
+LOAD CSV WITH HEADERS FROM 'file:///stops.csv' AS row
 CREATE (:Stop {
   stop_id: row.stop_id,
   stop_name: row.stop_name,
@@ -181,7 +181,7 @@ CREATE (:Stop {
 });
 
 // Trips
-LOAD CSV WITH HEADERS FROM 'file:///trips.txt' AS row
+LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
 CREATE (:Trip {
   trip_id: row.trip_id,
   route_id: row.route_id,
@@ -196,7 +196,7 @@ CREATE (:Trip {
 ```cypher
 // Route -> Agency
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///routes.txt' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///routes.csv' AS row
   MATCH (r:Route {route_id: row.route_id})
   MATCH (a:Agency {agency_id: row.agency_id})
   CREATE (r)-[:OPERATED_BY]->(a)
@@ -204,7 +204,7 @@ CALL {
 
 // Trip -> Route
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///trips.txt' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
   MATCH (t:Trip {trip_id: row.trip_id})
   MATCH (r:Route {route_id: row.route_id})
   CREATE (t)-[:BELONGS_TO]->(r)
@@ -212,7 +212,7 @@ CALL {
 
 // Stop -> Trip (from stop_times) - THE BIG ONE!
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///stop_times.txt' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///stop_times.csv' AS row
   MATCH (s:Stop {stop_id: row.stop_id})
   MATCH (t:Trip {trip_id: row.trip_id})
   CREATE (s)-[:STOP_TIME {
@@ -224,7 +224,7 @@ CALL {
 
 // Transfers
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///transfers.txt' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///transfers.csv' AS row
   MATCH (from:Stop {stop_id: row.from_stop_id})
   MATCH (to:Stop {stop_id: row.to_stop_id})
   CREATE (from)-[:TRANSFER {
@@ -235,7 +235,7 @@ CALL {
 
 // Pathways
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///pathways.txt' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///pathways.csv' AS row
   MATCH (from:Stop {stop_id: row.from_stop_id})
   MATCH (to:Stop {stop_id: row.to_stop_id})
   CREATE (from)-[:PATHWAY {
@@ -255,7 +255,7 @@ GTFS times can exceed 24:00:00 (e.g., 25:30:00 for 1:30 AM next day)
 - **Neo4j**: Store as string or convert to minutes since midnight (integer)
 
 ### 2. Large File Performance
-stop_times.txt is 796 MB!
+stop_times.csv is 796 MB!
 - **Create constraints BEFORE loading** (enables index lookups)
 - **Use batching** for Neo4j (5000-10000 rows)
 - **Consider subsetting** for initial testing

@@ -6,15 +6,15 @@ Quick reference for IDFM GTFS data structure. Full details in `README_FICHIERS.m
 
 | File | Size | Records (est) | Description |
 |------|------|---------------|-------------|
-| `stop_times.txt` | 796 MB | ~15M | **LARGEST** - Trip schedules |
-| `trips.txt` | 33.7 MB | ~500K | Individual trips |
-| `transfers.txt` | 6.2 MB | ~200K | Transfer connections |
-| `stops.txt` | 3.5 MB | ~50K | Stop locations |
-| `pathways.txt` | 359 KB | ~10K | Pedestrian paths |
-| `routes.txt` | 79 KB | ~2K | Transit lines |
-| `calendar.txt` | 38 KB | - | Service schedules |
-| `calendar_dates.txt` | 32 KB | - | Schedule exceptions |
-| `agency.txt` | 7 KB | 2 | RATP, Aérobus |
+| `stop_times.csv` | 796 MB | ~15M | **LARGEST** - Trip schedules |
+| `trips.csv` | 33.7 MB | ~500K | Individual trips |
+| `transfers.csv` | 6.2 MB | ~200K | Transfer connections |
+| `stops.csv` | 3.5 MB | ~50K | Stop locations |
+| `pathways.csv` | 359 KB | ~10K | Pedestrian paths |
+| `routes.csv` | 79 KB | ~2K | Transit lines |
+| `calendar.csv` | 38 KB | - | Service schedules |
+| `calendar_dates.csv` | 32 KB | - | Schedule exceptions |
+| `agency.csv` | 7 KB | 2 | RATP, Aérobus |
 
 ## Key Relationships
 
@@ -33,21 +33,21 @@ stops
 ## Important Fields
 
 ### For Graph Edges (Numeric Properties)
-- `min_transfer_time` (transfers.txt) - Transfer duration in seconds
-- `traversal_time` (pathways.txt) - Walking time in seconds
-- `length` (pathways.txt) - Distance in meters
-- `arrival_time`, `departure_time` (stop_times.txt) - Timestamps
+- `min_transfer_time` (transfers.csv) - Transfer duration in seconds
+- `traversal_time` (pathways.csv) - Walking time in seconds
+- `length` (pathways.csv) - Distance in meters
+- `arrival_time`, `departure_time` (stop_times.csv) - Timestamps
 - **Derived**: `travel_time` = next arrival - current departure
 
 ### For Filtering
-- `wheelchair_boarding` (stops.txt): 0=unknown, 1=yes, 2=no
-- `wheelchair_accessible` (trips.txt): 0=unknown, 1=yes, 2=no
-- `route_type` (routes.txt): 0=tram, 1=metro, 2=train, 3=bus
-- `transfer_type` (transfers.txt): 0=recommended, 1=timed, 2=min required, 3=impossible
+- `wheelchair_boarding` (stops.csv): 0=unknown, 1=yes, 2=no
+- `wheelchair_accessible` (trips.csv): 0=unknown, 1=yes, 2=no
+- `route_type` (routes.csv): 0=tram, 1=metro, 2=train, 3=bus
+- `transfer_type` (transfers.csv): 0=recommended, 1=timed, 2=min required, 3=impossible
 
 ### For Locations
-- `stop_lat`, `stop_lon` (stops.txt) - WGS84 coordinates
-- `location_type` (stops.txt): 0=stop, 1=station, 2=entrance
+- `stop_lat`, `stop_lon` (stops.csv) - WGS84 coordinates
+- `location_type` (stops.csv): 0=stop, 1=station, 2=entrance
 
 ## Common Queries Reference
 
@@ -112,8 +112,8 @@ WHERE departure_time BETWEEN '07:00:00' AND '09:00:00'
 
 ## Useful Route IDs
 - RER A: `100110`
-- Metro Line 1: `100111001` (check actual ID in routes.txt)
-- Check `routes.txt` for complete list
+- Metro Line 1: `100111001` (check actual ID in routes.csv)
+- Check `routes.csv` for complete list
 
 ## Reference
 Full GTFS specification: https://gtfs.org/

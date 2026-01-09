@@ -13,7 +13,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ## Liste des fichiers
 
-### 1. **agency.txt** (6,7 Ko)
+### 1. **agency.csv** (6,7 Ko)
 **Description :** Informations sur les agences de transport exploitant les lignes.
 
 **Contenu :**
@@ -27,7 +27,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 2. **calendar.txt** (37,6 Ko)
+### 2. **calendar.csv** (37,6 Ko)
 **Description :** Définit les périodes de service régulières (jours de la semaine où un service fonctionne).
 
 **Contenu :**
@@ -40,7 +40,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 3. **calendar_dates.txt** (31,9 Ko)
+### 3. **calendar_dates.csv** (31,9 Ko)
 **Description :** Exceptions aux calendriers réguliers (jours fériés, grèves, modifications ponctuelles).
 
 **Contenu :**
@@ -54,7 +54,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 4. **feed_info.txt** (164 octets)
+### 4. **feed_info.csv** (164 octets)
 **Description :** Métadonnées sur l'export GTFS lui-même.
 
 **Contenu :**
@@ -69,7 +69,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 5. **pathways.txt** (359,7 Ko)
+### 5. **pathways.csv** (359,7 Ko)
 **Description :** Chemins piétons au sein des stations (passages, escaliers, ascenseurs).
 
 **Contenu :**
@@ -85,7 +85,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 6. **routes.txt** (79,3 Ko)
+### 6. **routes.csv** (79,3 Ko)
 **Description :** Lignes de transport (bus, métro, RER, tramway).
 
 **Contenu :**
@@ -101,7 +101,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 7. **stop_times.txt** (796,5 Mo) ⚠️ **FICHIER VOLUMINEUX**
+### 7. **stop_times.csv** (796,5 Mo) ⚠️ **FICHIER VOLUMINEUX**
 **Description :** Horaires détaillés de passage à chaque arrêt pour chaque trajet.
 
 **Contenu :**
@@ -119,7 +119,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 8. **stops.txt** (3,5 Mo)
+### 8. **stops.csv** (3,5 Mo)
 **Description :** Liste de tous les arrêts, stations et points d'accès.
 
 **Contenu :**
@@ -138,7 +138,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 9. **transfers.txt** (6,2 Mo)
+### 9. **transfers.csv** (6,2 Mo)
 **Description :** Correspondances possibles entre arrêts et temps de correspondance.
 
 **Contenu :**
@@ -155,7 +155,7 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 ---
 
-### 10. **trips.txt** (33,7 Mo)
+### 10. **trips.csv** (33,7 Mo)
 **Description :** Trajets individuels effectués sur une ligne.
 
 **Contenu :**
@@ -175,21 +175,21 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 ## Relations entre les fichiers
 
 ```
-agency.txt
+agency.csv
     ↓
-routes.txt (lignes exploitées par les agences)
+routes.csv (lignes exploitées par les agences)
     ↓
-trips.txt (trajets sur ces lignes)
+trips.csv (trajets sur ces lignes)
     ↓
-stop_times.txt (horaires détaillés pour chaque trajet)
+stop_times.csv (horaires détaillés pour chaque trajet)
     ↓
-stops.txt (arrêts desservis)
+stops.csv (arrêts desservis)
     ↓
-transfers.txt (correspondances entre arrêts)
+transfers.csv (correspondances entre arrêts)
     ↓
-pathways.txt (chemins au sein des stations)
+pathways.csv (chemins au sein des stations)
 
-calendar.txt + calendar_dates.txt → Déterminent quand les trajets fonctionnent
+calendar.csv + calendar_dates.csv → Déterminent quand les trajets fonctionnent
 ```
 
 ---
@@ -206,10 +206,10 @@ calendar.txt + calendar_dates.txt → Déterminent quand les trajets fonctionnen
 
 ## Utilisation recommandée
 
-1. **Planification d'itinéraires :** Combiner `routes.txt`, `trips.txt`, `stop_times.txt` et `stops.txt`
-2. **Accessibilité :** Filtrer par `wheelchair_boarding` dans `stops.txt` et `wheelchair_accessible` dans `trips.txt`
+1. **Planification d'itinéraires :** Combiner `routes.csv`, `trips.csv`, `stop_times.csv` et `stops.csv`
+2. **Accessibilité :** Filtrer par `wheelchair_boarding` dans `stops.csv` et `wheelchair_accessible` dans `trips.csv`
 3. **Temps réel :** Ces données sont statiques ; pour le temps réel, utiliser l'API GTFS-RT
-4. **Calcul de correspondances :** Utiliser `transfers.txt` et `pathways.txt`
+4. **Calcul de correspondances :** Utiliser `transfers.csv` et `pathways.csv`
 
 ---
 
