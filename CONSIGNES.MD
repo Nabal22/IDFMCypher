@@ -24,8 +24,7 @@ expliquez egalement comment vous avez procede.
 
 ## 2. Requetes
 L’un des objectifs de ce projet consiste a comparer Cypher 5 avec Cypher 25. Vous com-
-mencerez par examiner les requetes etudiees dans [cet article](./article/SIGMOD.MD), qui porte sur Cypher 5 et ses versions anterieures. En vous inspirant de cet [article](./article/QUERY_CHOMP_REPEAT.MD) et [celui-ci](./article/SOLVE_HARD_GRAPH_PROBLEMS_WITH_CYPHER_25.MD), vous essaierez alors de pro-poser de nouvelles manieres d’ecrire dans Cypher 25, les requetes Cypher 5 pointees comme
-problematiques dans le premier article. Vous testerez egalement l’evaluation de versions SQL
+mencerez par examiner les requetes etudiees dans [cet article](./article/SIGMOD.MD), qui porte sur Cypher 5 et ses versions anterieures. En vous inspirant de cet [article](./article/QUERY_CHOMP_REPEAT.MD) et [celui-ci](./article/SOLVE_HARD_GRAPH_PROBLEMS_WITH_CYPHER_25.MD), vous essaierez alors de pro-poser de nouvelles manieres d’ecrire dans Cypher 25, les requetes Cypher 5 pointees comme problematiques dans le premier article. Vous testerez egalement l’evaluation de versions SQL
 de certaines de ces requetes sur votre jeu de donnees relationnelles. Lorsque l’evaluation ne
 termine pas sur votre jeu de donnees, vous essaierez de determiner un sous-ensemble de votre
 jeu de donnees sur lequel elle termine (sous-graphe ou sous-ensemble des tuples). Vous etes

@@ -1,15 +1,12 @@
 # Documentation des fichiers GTFS - Île-de-France Mobilités
 
-Nous utilisons le format GTFS (General Transit Feed Specification) pour fournir des données de transport en commun pour la région Île-de-France. Ce document décrit les différents fichiers inclus dans l'export GTFS, leur contenu, et comment les utiliser.
+Ce dossier contient un export GTFS (General Transit Feed Specification) du réseau de transports en commun d'Île-de-France (RATP, Aérobus, etc.).
 
 ## Format GTFS
 
 GTFS est un format standard utilisé pour représenter les horaires et les informations géographiques des réseaux de transport en commun. Ces données permettent aux applications de planification d'itinéraires d'intégrer les informations de transport.
 
 ---
-## Description des fichiers
-
-Tous les fichiers sont dans le dossier `export/` et sont au format texte délimité par des virgules (CSV), avec une ligne d'en-tête.
 
 ## Liste des fichiers
 
