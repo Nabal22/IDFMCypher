@@ -68,7 +68,7 @@ WITH RECURSIVE increasing_path AS (
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
   WHERE st.stop_sequence = 1
-    AND r.route_short_name = '3'
+    AND r.route_long_name = '3'
 
   UNION ALL
 
@@ -112,7 +112,7 @@ WITH RECURSIVE increasing_path AS (
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
   WHERE st.stop_sequence = 1
-    AND r.route_short_name = '3'
+    AND r.route_long_name = '3'
 
   UNION ALL
 
@@ -145,7 +145,7 @@ WITH RECURSIVE increasing_path AS (
   FROM stop_times st
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
-  WHERE st.stop_sequence = 1 AND r.route_short_name = '3'
+  WHERE st.stop_sequence = 1 AND r.route_long_name = '3'
 
   UNION ALL
 
@@ -164,7 +164,7 @@ WITH RECURSIVE increasing_path AS (
   FROM stop_times st
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
-  WHERE st.stop_sequence = 1 AND r.route_short_name = '3'
+  WHERE st.stop_sequence = 1 AND r.route_long_name = '3'
 
   UNION ALL
 
@@ -183,7 +183,7 @@ WITH RECURSIVE increasing_path AS (
   FROM stop_times st
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
-  WHERE st.stop_sequence = 1 AND r.route_short_name = '3'
+  WHERE st.stop_sequence = 1 AND r.route_long_name = '3'
 
   UNION ALL
 
@@ -210,7 +210,7 @@ WITH RECURSIVE increasing_path AS (
   JOIN trips t ON st.trip_id = t.trip_id
   JOIN routes r ON t.route_id = r.route_id
   WHERE st.stop_sequence = 1
-    AND r.route_short_name = '3'
+    AND r.route_long_name = '3'
 
   UNION ALL
 

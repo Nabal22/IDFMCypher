@@ -287,9 +287,9 @@ Find queries where SQL outperforms Cypher:
 
 **Simple aggregations**: SQL usually faster
 ```sql
-SELECT route_short_name, COUNT(*) as trip_count
+SELECT route_long_name, COUNT(*) as trip_count
 FROM trips t JOIN routes r ON t.route_id = r.route_id
-GROUP BY route_short_name
+GROUP BY route_long_name
 ORDER BY trip_count DESC;
 ```
 

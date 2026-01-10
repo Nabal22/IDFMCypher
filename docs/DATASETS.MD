@@ -79,7 +79,7 @@ Lignes de transport (bus, métro, RER, tramway).
 **Colonnes** :
 - `route_id` : Identifiant unique de la ligne
 - `agency_id` : Agence exploitant la ligne
-- `route_short_name` : Nom court (numéro de ligne)
+- `route_short_name` : Nom court (numéro de ligne) (Pas utilisé pour métro)
 - `route_long_name` : Nom complet de la ligne
 - `route_type` : Type de transport (0=tram, 1=métro, 2=train, 3=bus, etc.)
 - `route_color` : Couleur de la ligne en hexadécimal

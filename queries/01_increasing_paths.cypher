@@ -9,7 +9,7 @@
 // Complexité exponentielle cachée par la syntaxe simple
 
 // Recherche de trajets avec horaires croissants sur une ligne spécifique
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*2..5]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
   relationships(path)[i].departure_time < relationships(path)[i+1].departure_time
@@ -28,7 +28,7 @@ LIMIT 10;
 // À tester quand Cypher 25 sera disponible
 
 /*
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*2..5]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE allReduce(
   rel IN relationships(path) WHERE type(rel) = 'STOP_TIME' |
@@ -47,7 +47,7 @@ LIMIT 10;
 // ============================================================================
 // Approche: calculer d'abord, filtrer ensuite (évite reduce dans WHERE)
 
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*2..5]->(t:Trip)-[:BELONGS_TO]->(r)
 WITH path, relationships(path) as rels
 WITH path, rels,
@@ -67,7 +67,7 @@ LIMIT 10;
 // Objectif: Déterminer à partir de combien de stops la requête timeout
 
 // Test avec 2 stops
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*2]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
   relationships(path)[i].departure_time < relationships(path)[i+1].departure_time
@@ -75,7 +75,7 @@ WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
 RETURN count(path) as path_count;
 
 // Test avec 3 stops
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*3]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
   relationships(path)[i].departure_time < relationships(path)[i+1].departure_time
@@ -83,7 +83,7 @@ WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
 RETURN count(path) as path_count;
 
 // Test avec 5 stops
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*5]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
   relationships(path)[i].departure_time < relationships(path)[i+1].departure_time
@@ -96,7 +96,7 @@ RETURN count(path) as path_count;
 // À exécuter pour obtenir le plan d'exécution
 
 PROFILE
-MATCH (r:Route {route_short_name: '3'})
+MATCH (r:Route {route_long_name: '3'})
 MATCH path = (start:Stop)-[:STOP_TIME*2..3]->(t:Trip)-[:BELONGS_TO]->(r)
 WHERE ALL(i IN range(0, size(relationships(path))-2) WHERE
   relationships(path)[i].departure_time < relationships(path)[i+1].departure_time

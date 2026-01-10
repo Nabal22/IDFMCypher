@@ -89,9 +89,9 @@ RETURN
   s1.stop_name as start,
   s2.stop_name as metro_bus_interchange,
   s3.stop_name as bus_metro_interchange,
-  r1.route_short_name as metro1,
-  r2.route_short_name as bus,
-  r3.route_short_name as metro2
+  r1.route_long_name as metro1,
+  r2.route_long_name as bus,
+  r3.route_long_name as metro2
 LIMIT 10;
 
 // CYPHER 25 - RPQ avec quantificateurs (syntaxe future)
@@ -140,7 +140,7 @@ LIMIT 5;
 // ATTENTION: NP-complet, timeout attendu à ≥10 nœuds
 
 // Version limitée à une petite ligne
-MATCH (r:Route {route_short_name: '14'})  // Ligne courte
+MATCH (r:Route {route_long_name: '14'})  // Ligne courte
 MATCH (s:Stop)-[:STOP_TIME]->(:Trip)-[:BELONGS_TO]->(r)
 WITH collect(DISTINCT s) as all_stops, count(DISTINCT s) as target_count
 
