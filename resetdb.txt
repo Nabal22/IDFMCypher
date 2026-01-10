@@ -1,0 +1,4 @@
+:use system
+drop database neo4j
+create database neo4j
+:use neo4j
