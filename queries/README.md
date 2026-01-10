@@ -21,11 +21,6 @@ Ce dossier contient toutes les requêtes développées pour la Part 2 du projet 
 - `reduce` dans `WHERE` → complexité exponentielle
 - Timeout attendu : >10 stops (selon SIGMOD)
 
-**Solutions** :
-- Cypher 25 : `allReduce` (syntaxe future, non disponible Neo4j 5.x)
-- Cypher 5 alternative : déplacer `reduce` dans `WITH`
-- SQL : CTE récursive avec contrainte dans le `WHERE`
-
 **Fichiers** :
 - `01_increasing_paths.cypher` : versions Cypher avec tests de performance
 - `01_increasing_paths.sql` : version SQL avec EXPLAIN ANALYZE
@@ -93,7 +88,7 @@ Ce dossier contient toutes les requêtes développées pour la Part 2 du projet 
 
 ### Prérequis
 1. ✅ Données chargées dans Neo4j et PostgreSQL (voir Part 1)
-2. ✅ Neo4j Desktop 5.x ou supérieur
+2. ✅ Neo4j avec Cypher 25 activé
 3. ✅ PostgreSQL 14+ avec support des CTEs récursives
 4. ⚠️ Neo4j GDS plugin installé (pour `04_shortest_path_gds.cypher`)
 
@@ -193,14 +188,6 @@ Pour chaque requête, documenter :
 - **Avantage SQL** : plus difficile d'écrire des requêtes problématiques par accident
 
 ## Notes importantes
-
-### Cypher 25 non disponible
-⚠️ **La syntaxe Cypher 25 est documentée mais NON implémentée dans Neo4j Desktop 5.x**
-
-Les requêtes Cypher 25 sont :
-- Commentées avec `/* ... */`
-- Documentées pour le rapport
-- À tester quand Neo4j 6.x sera disponible
 
 ### APOC Functions
 Certaines requêtes utilisent APOC (ex: `apoc.coll.toSet`).
