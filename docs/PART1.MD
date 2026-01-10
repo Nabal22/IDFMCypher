@@ -131,6 +131,45 @@ CREATE INDEX route_type FOR (r:Route) ON (r.route_type);
 
 ## Import Strategy
 
+### ⚠️ IMPORTANT : Subsetting et Cohérence des Données
+
+**Problème 1 - Volumétrie** : Les fichiers GTFS originaux sont trop volumineux :
+- `stop_times.csv` : 796 MB (~15M lignes)
+- `trips.csv` : 33.7 MB (~500K lignes)
+
+L'import direct provoque des erreurs de mémoire (Neo4j) ou des temps de traitement prohibitifs (plusieurs heures).
+
+**Problème 2 - Cohérence** : Si on filtre uniquement `stop_times.csv`, on obtient :
+- Des `trip_id` référencés qui n'existent pas dans `trips.csv` (violation de clé étrangère)
+- Impossible de créer les relations `BELONGS_TO` vers les Routes
+- Données incohérentes pour les deux bases de données
+
+**Solution** : Utiliser des fichiers subset générés par `create_subset_by_route.sh`
+
+Le script **filtre de manière cohérente** :
+
+```bash
+# Génération des subsets (lignes 3, 7, 14, 11 par défaut)
+bash create_subset_by_route.sh
+
+# Personnalisation (exemple : ligne 11 uniquement)
+METRO_LINES="11" bash create_subset_by_route.sh
+
+# Plusieurs lignes
+METRO_LINES="1 4 6 14" bash create_subset_by_route.sh
+```
+
+**Résultat** :
+- `export/trips_subset.csv` : Uniquement les trajets des lignes de métro sélectionnées
+- `export/stop_times_subset.csv` : Uniquement les horaires correspondants
+
+**Réduction typique** : ~95% de données en moins (de 796 MB à ~40 MB pour 4 lignes de métro)
+
+**Choix des lignes** :
+- Lignes 3, 7, 14, 11 (par défaut) : Réseau représentatif pour les requêtes de chemin
+- Ligne 11 seule : Datasets minimal pour tests rapides
+- Lignes 1, 4, 6, 14 : Réseau central de Paris
+
 ### PostgreSQL: COPY Command
 ```sql
 \COPY agency FROM './export/agency.csv' CSV HEADER;
@@ -180,8 +219,9 @@ CREATE (:Stop {
   parent_station: row.parent_station
 });
 
-// Trips
-LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
+// Trips - UTILISER LE SUBSET!
+// Note: trips_subset.csv est généré par create_subset_by_route.sh
+LOAD CSV WITH HEADERS FROM 'file:///trips_subset.csv' AS row
 CREATE (:Trip {
   trip_id: row.trip_id,
   route_id: row.route_id,
@@ -204,15 +244,15 @@ CALL {
 
 // Trip -> Route
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///trips_subset.csv' AS row
   MATCH (t:Trip {trip_id: row.trip_id})
   MATCH (r:Route {route_id: row.route_id})
   CREATE (t)-[:BELONGS_TO]->(r)
 } IN TRANSACTIONS OF 10000 ROWS;
 
-// Stop -> Trip (from stop_times) - THE BIG ONE!
+// Stop -> Trip (from stop_times) - UTILISER LE SUBSET!
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///stop_times.csv' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///stop_times_subset.csv' AS row
   MATCH (s:Stop {stop_id: row.stop_id})
   MATCH (t:Trip {trip_id: row.trip_id})
   CREATE (s)-[:STOP_TIME {

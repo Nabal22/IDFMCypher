@@ -117,6 +117,41 @@ Tous les fichiers sont dans le dossier `export/` et sont au format texte délimi
 
 **Exemple d'utilisation :** Obtenir tous les horaires de passage d'un bus à un arrêt spécifique.
 
+**⚠️ FICHIERS SUBSET POUR COHÉRENCE DES DONNÉES**
+
+En raison de la taille importante des fichiers originaux (796 MB pour stop_times.csv, 33.7 MB pour trips.csv), des versions réduites sont générées :
+
+- **stop_times_subset.csv** : Contient uniquement les horaires pour les lignes de métro sélectionnées
+- **trips_subset.csv** : Contient uniquement les trajets des lignes de métro sélectionnées
+
+**Pourquoi générer les deux fichiers ensemble ?**
+Pour garantir la **cohérence relationnelle** des données :
+- Chaque `trip_id` dans `stop_times_subset.csv` existe dans `trips_subset.csv`
+- Aucun trajet orphelin (trip sans horaires)
+- Aucun horaire orphelin (stop_time sans trip)
+
+Cette cohérence est **essentielle pour PostgreSQL ET Neo4j** car elle évite les erreurs de clés étrangères et les nœuds/relations orphelins.
+
+Ces fichiers sont générés automatiquement par le script `create_subset_by_route.sh` qui filtre les données selon les lignes de métro configurées (par défaut : lignes 3, 7, 14 et 11). Pour personnaliser les lignes :
+
+```bash
+# Exemple : générer un subset pour la ligne 11 uniquement
+METRO_LINES="11" bash create_subset_by_route.sh
+
+# Exemple : plusieurs lignes
+METRO_LINES="1 4 6 14" bash create_subset_by_route.sh
+```
+
+Le script effectue un filtrage en 3 étapes :
+1. Extraction des route_ids correspondant aux lignes de métro demandées
+2. Extraction des trip_ids associés à ces routes (écrit dans trips_subset.csv)
+3. Extraction des stop_times correspondant à ces trips (écrit dans stop_times_subset.csv)
+
+**Utilisation recommandée** : 
+- **PostgreSQL** : Peut utiliser les fichiers complets OU les subsets (performances suffisantes)
+- **Neo4j** : DOIT utiliser les fichiers subset (évite les problèmes de mémoire)
+- **Important** : Si vous utilisez les subsets, utilisez-les pour TOUTES les bases de données afin de garantir la cohérence entre PostgreSQL et Neo4j
+
 ---
 
 ### 8. **stops.csv** (3,5 Mo)

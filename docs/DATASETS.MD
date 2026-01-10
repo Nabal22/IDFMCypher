@@ -15,6 +15,33 @@ Quick reference for IDFM GTFS data structure. Full details in `README_FICHIERS.m
 | `calendar.csv` | 38 KB | - | Service schedules |
 | `calendar_dates.csv` | 32 KB | - | Schedule exceptions |
 | `agency.csv` | 7 KB | 2 | RATP, Aérobus |
+| **`stop_times_subset.csv`** | **Variable** | **Subset** | **Metro-only schedules (for Neo4j)** |
+| **`trips_subset.csv`** | **Variable** | **Subset** | **Metro-only trips (for Neo4j)** |
+
+### 🚨 Subset Files - Cohérence des Données
+
+Les fichiers `stop_times_subset.csv` et `trips_subset.csv` sont des versions réduites générées pour :
+1. **Réduire la volumétrie** : Les fichiers complets (796 MB + 33.7 MB) sont difficiles à traiter
+2. **Garantir la cohérence** : Les deux fichiers sont filtrés ensemble pour maintenir l'intégrité référentielle
+
+**Cohérence relationnelle** :
+- Tous les `trip_id` référencés dans `stop_times_subset.csv` existent dans `trips_subset.csv`
+- Pas de trajets sans horaires, pas d'horaires sans trajet
+- Important pour PostgreSQL (clés étrangères) ET Neo4j (relations valides)
+
+**Génération** : Via le script `create_subset_by_route.sh`
+```bash
+# Par défaut : lignes 3, 7, 14, 11
+bash create_subset_by_route.sh
+
+# Personnalisé : ligne 11 uniquement
+METRO_LINES="11" bash create_subset_by_route.sh
+```
+
+**Stratégie de filtrage** :
+1. Sélection des `route_id` correspondant aux lignes de métro (route_type=1)
+2. Extraction des `trip_id` associés → `trips_subset.csv`
+3. Extraction des `stop_times` correspondants → `stop_times_subset.csv`
 
 ## Key Relationships
 

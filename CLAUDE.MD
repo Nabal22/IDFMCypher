@@ -87,8 +87,15 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 ### Dataset Characteristics
 - **Transport network**: Perfect for graph algorithms (paths, connectivity)
 - **Numeric edges**: travel_time, transfer_time, traversal_time
-- **Large scale**: 796 MB stop_times.csv (may need subsetting)
+- **Large scale**: 796 MB stop_times.csv ⚠️ **SUBSETTING REQUIRED FOR NEO4J**
 - **Real-world**: IDFM Île-de-France public transport
+
+**⚠️ IMPORTANT - Fichiers Subset et Cohérence**:
+- Les fichiers complets (stop_times.csv 796MB, trips.csv 33.7MB) sont **trop volumineux pour Neo4j**
+- **Solution**: Utiliser `stop_times_subset.csv` et `trips_subset.csv` (générés ensemble par `create_subset_by_route.sh`)
+- **Cohérence**: Les deux fichiers sont filtrés ensemble pour maintenir l'intégrité référentielle (trip_id valides)
+- **Par défaut**: Lignes de métro 3, 7, 14, 11 (réduction ~95%)
+- **PostgreSQL et Neo4j**: Utiliser les MÊMES subsets pour garantir la cohérence entre les deux bases
 
 ## When Working With Claude
 
