@@ -6,17 +6,15 @@
 // CYPHER 5 - VERSION PROBLÉMATIQUE (reduce dans WHERE)
 // ============================================================================
 
-// Recherche de trajets avec horaires croissants sur une ligne spécifique
+CYPHER 5
 MATCH (r:Route {route_long_name: '11'})
 MATCH (t:Trip)-[:BELONGS_TO]->(r)
 
-// 2. On cherche les chemins qui finissent par ces voyages
 MATCH p = (start:Stop)-[:STOP_TIME*]->(t)
 WHERE NOT EXISTS {
     WITH p
     UNWIND range(0, length(p)-2) AS i
     WITH relationships(p)[i] AS r1, relationships(p)[i+1] AS r2
-    // Le filtre négatif : on exclut si la séquence n'augmente pas
     WHERE r1.stop_sequence >= r2.stop_sequence
     RETURN 1
 }
@@ -24,15 +22,20 @@ RETURN p
 LIMIT 10
 
 // ============================================================================
-// CYPHER 25 - VERSION OPTIMISÉE (allReduce)
+// CYPHER 25 - VERSION AVEC allReduce
 // ============================================================================
 
+CYPHER 25
+MATCH (r:Route {route_long_name: '11'})
+MATCH (t:Trip)-[:BELONGS_TO]->(r)
+MATCH p = (start:Stop)-[:STOP_TIME*]->(t)
 
-/*
-MATCH p = (start:Stop)-[:STOP_TIME*]->(end:Trip)
-WHERE all(i IN range(0, length(p)-2)
-    WHERE (relationships(p)[i]).stop_sequence < (relationships(p)[i+1]).stop_sequence
+// allReduce vérifie que TOUTES les transitions satisfont la condition
+WHERE allReduce(
+    prev = -1,
+    rel IN relationships(p) |
+    rel.stop_sequence,
+    prev <= rel.stop_sequence
 )
 RETURN p
 LIMIT 10
-*/
