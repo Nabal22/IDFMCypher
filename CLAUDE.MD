@@ -4,9 +4,10 @@
 Master's level database project comparing Cypher 5 and Cypher 25 query languages using IDFM (Île-de-France Mobilités) public transport data from GTFS format.
 
 ## Quick Reference
-- **Current Phase**: ✅ Part 1 Complete → Part 2 Ready
+- **Current Phase**: ✅ Part 1 & 2 Complete → Part 3 Ready (Testing & Analysis)
 - **Dataset**: GTFS subsets (trips_subset.csv, stop_times_subset.csv)
 - **Databases**: ✅ PostgreSQL + ✅ Neo4j (both loaded and tested)
+- **Queries**: ✅ 9 files in `queries/` (Cypher 5, Cypher 25, SQL, GDS)
 - **Documentation**: See `docs/` folder for detailed guides
 
 ## Project Structure
@@ -19,6 +20,13 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 │   ├── PART1.MD        ← Data import guide (schemas, constraints, examples)
 │   ├── PART2.MD        ← Query patterns and SIGMOD findings
 │   └── DATASETS.MD     ← GTFS data structure reference
+├── queries/            ← ✅ NEW! All query implementations
+│   ├── README.md       ← Query documentation and usage guide
+│   ├── 01_increasing_paths.cypher / .sql
+│   ├── 02_quantified_patterns.cypher / .sql
+│   ├── 03_shortest_path.cypher / .sql
+│   ├── 04_shortest_path_gds.cypher
+│   └── 05_additional_patterns.cypher
 ├── article/
 │   ├── SIGMOD.MD       ← Synthesized findings on Cypher 5 problems
 │   ├── QUERY_CHOMP_REPEAT.MD
@@ -41,21 +49,21 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 **Model Chosen**: Hybrid (Stop, Trip, Route, Agency nodes with relationships)
 **Reference**: `test-queries.md` for validation queries
 
-### Phase 2: Query Development 🚧 NEXT
-**Status**: Ready to start
+### Phase 2: Query Development ✅ COMPLETE!
+**Status**: Queries implemented, ready for testing
 **Goal**: Implement Cypher 5, Cypher 25, and SQL queries
 
-**Quick Steps**:
-1. Identify problematic Cypher 5 patterns from SIGMOD
-2. Rewrite using Cypher 25 features
-3. Create SQL equivalents
-4. Test on IDFM data
-5. Collect execution plans
+**What Was Done**:
+1. ✅ 5 patterns implemented (increasing paths, quantified, shortest path, GDS, additional)
+2. ✅ Cypher 5, Cypher 25 (documented), and SQL versions
+3. ✅ All 4 mandatory comparisons covered
+4. ✅ Performance tests and PROFILE/EXPLAIN queries included
+5. ✅ Documentation: `queries/README.md` with usage guide
 
-**Read**: `docs/PART2.MD` for query patterns and SIGMOD findings
+**Files Created**: `queries/*.cypher`, `queries/*.sql`
 
 ### Phase 3: Analysis & Report 📝
-**Status**: Blocked (needs Phase 2)
+**Status**: Ready to start (queries need testing)
 **Goal**: Compare performance and write report
 
 **Quick Steps**:
@@ -111,7 +119,14 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 ## Next Steps
 
 ### Immediate
-🎯 **Start Part 2**: Implement the 6 mandatory query comparisons (see `docs/PART2.MD`)
+🎯 **Start Part 3**: Test queries and collect performance metrics
+
+**Actions requises**:
+1. Tester les requêtes Cypher dans Neo4j Browser
+2. Tester les requêtes SQL dans PostgreSQL
+3. Installer Neo4j GDS plugin pour les algorithmes
+4. Collecter les temps d'exécution et plans d'exécution
+5. Documenter les résultats pour le rapport
 
 ### Part 1 Summary
 - ✅ Neo4j imported

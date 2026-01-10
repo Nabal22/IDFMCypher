@@ -33,6 +33,13 @@ psql -d postgres -f postgres-full-setup.sql
 │   ├── PART1.MD                 # Import guide
 │   ├── PART2.MD                 # Query comparisons
 │   └── DATASETS.MD              # GTFS reference
+├── queries/                     # All query implementations
+│   ├── README.md                # Query documentation
+│   ├── 01_increasing_paths.*    # Cypher 5/25 + SQL
+│   ├── 02_quantified_patterns.* # Cypher 5/25 + SQL
+│   ├── 03_shortest_path.*       # Cypher 5/25 + SQL
+│   ├── 04_shortest_path_gds.*   # Neo4j GDS algorithms
+│   └── 05_additional_patterns.* # Subset sum, trails, etc.
 └── export/
     ├── *_subset.csv             # Generated subsets
     └── *.csv                    # Original GTFS files
@@ -53,8 +60,8 @@ psql -d postgres -f postgres-full-setup.sql
 ## Status
 
 - ✅ Part 1: Data import complete
-- 🚧 Part 2: Query development (next)
-- ⏳ Part 3: Analysis and report
+- ✅ Part 2: Query development complete (9 query files)
+- 🚧 Part 3: Testing, analysis and report (next)
 
 ## Key Scripts
 
