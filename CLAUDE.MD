@@ -135,6 +135,10 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 - ✅ Scripts: `neo4j-import.cypher`, `postgres-full-setup.sql`, `test-queries.md`
 - ✅ Subsets: `generate_subset_files.sh` (optimized awk, 10-20 sec)
 
+### Part 2 Summary
+- ✅ increasing_paths.cypher / ❌ increasing_paths.sql
+- ✅ quantified_patterns.cypher / ✅ quantified_patterns.sql
+
 ## Report Requirements (French)
 Must include:
 1. Data import strategy
