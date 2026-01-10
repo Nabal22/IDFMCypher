@@ -118,7 +118,7 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 - ✅ PostgreSQL imported: Same data, fully constrained
 - ✅ Queries tested and validated on both databases
 - ✅ Scripts: `neo4j-import.cypher`, `postgres-full-setup.sql`, `test-queries.md`
-- ✅ Subsets: `create_subset_by_routes.sh` (optimized with awk)
+- ✅ Subsets: `generate_subset_files.sh` (optimized awk, 10-20 sec)
 
 ## Report Requirements (French)
 Must include:

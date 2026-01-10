@@ -144,11 +144,16 @@ L'import direct provoque des erreurs de mémoire (Neo4j) ou des temps de traitem
 - Impossible de créer les relations `BELONGS_TO` vers les Routes
 - Données incohérentes pour les deux bases de données
 
-**Solution** : Utiliser des fichiers subset générés par `create_subset_by_route.sh` :
+**Solution** : Utiliser `./generate_subset_files.sh`
+
+```bash
+# Génère trips_subset.csv et stop_times_subset.csv
+./generate_subset_files.sh
+```
 
 **Résultat** :
-- `export/trips_subset.csv` : Uniquement les trajets des lignes de métro sélectionnées
-- `export/stop_times_subset.csv` : Uniquement les horaires correspondants
+- `export/trips_subset.csv` : Trajets des lignes de métro sélectionnées (default: 3, 7, 14, 11)
+- `export/stop_times_subset.csv` : Horaires correspondants (cohérence garantie)
 
 ### PostgreSQL: COPY Command
 ```sql
@@ -200,7 +205,7 @@ CREATE (:Stop {
 });
 
 // Trips - UTILISER LE SUBSET!
-// Note: trips_subset.csv est généré par create_subset_by_route.sh
+// Note: trips_subset.csv généré par ./generate_subset_files.sh
 LOAD CSV WITH HEADERS FROM 'file:///trips_subset.csv' AS row
 CREATE (:Trip {
   trip_id: row.trip_id,
