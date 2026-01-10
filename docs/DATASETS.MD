@@ -15,8 +15,8 @@ Quick reference for IDFM GTFS data structure. Full details in `README_FICHIERS.m
 | `calendar.csv` | 38 KB | - | Service schedules |
 | `calendar_dates.csv` | 32 KB | - | Schedule exceptions |
 | `agency.csv` | 7 KB | 2 | RATP, Aérobus |
-| **`stop_times_subset.csv`** | **Variable** | **Subset** | **Metro-only schedules (for Neo4j)** |
-| **`trips_subset.csv`** | **Variable** | **Subset** | **Metro-only trips (for Neo4j)** |
+| `stop_times_subset.csv` | 30 MB | Subset | Metro-only schedules (for Neo4j) |
+| `trips_subset.csv` | 6 MB | Subset | Metro-only trips (for Neo4j) | 
 
 ### 🚨 Subset Files - Cohérence des Données
 

@@ -144,31 +144,11 @@ L'import direct provoque des erreurs de mémoire (Neo4j) ou des temps de traitem
 - Impossible de créer les relations `BELONGS_TO` vers les Routes
 - Données incohérentes pour les deux bases de données
 
-**Solution** : Utiliser des fichiers subset générés par `create_subset_by_route.sh`
-
-Le script **filtre de manière cohérente** :
-
-```bash
-# Génération des subsets (lignes 3, 7, 14, 11 par défaut)
-bash create_subset_by_route.sh
-
-# Personnalisation (exemple : ligne 11 uniquement)
-METRO_LINES="11" bash create_subset_by_route.sh
-
-# Plusieurs lignes
-METRO_LINES="1 4 6 14" bash create_subset_by_route.sh
-```
+**Solution** : Utiliser des fichiers subset générés par `create_subset_by_route.sh` :
 
 **Résultat** :
 - `export/trips_subset.csv` : Uniquement les trajets des lignes de métro sélectionnées
 - `export/stop_times_subset.csv` : Uniquement les horaires correspondants
-
-**Réduction typique** : ~95% de données en moins (de 796 MB à ~40 MB pour 4 lignes de métro)
-
-**Choix des lignes** :
-- Lignes 3, 7, 14, 11 (par défaut) : Réseau représentatif pour les requêtes de chemin
-- Ligne 11 seule : Datasets minimal pour tests rapides
-- Lignes 1, 4, 6, 14 : Réseau central de Paris
 
 ### PostgreSQL: COPY Command
 ```sql
@@ -177,10 +157,10 @@ METRO_LINES="1 4 6 14" bash create_subset_by_route.sh
 \COPY calendar_dates FROM './export/calendar_dates.csv' CSV HEADER;
 \COPY routes FROM './export/routes.csv' CSV HEADER;
 \COPY stops FROM './export/stops.csv' CSV HEADER;
-\COPY trips FROM './export/trips.csv' CSV HEADER;
+\COPY trips FROM './export/trips_subset.csv' CSV HEADER;
 \COPY transfers FROM './export/transfers.csv' CSV HEADER;
 \COPY pathways FROM './export/pathways.csv' CSV HEADER;
-\COPY stop_times FROM './export/stop_times.csv' CSV HEADER;  -- WARNING: 796 MB!
+\COPY stop_times FROM './export/stop_times_subset.csv' CSV HEADER;
 ```
 
 ### Neo4j: LOAD CSV with Batching
