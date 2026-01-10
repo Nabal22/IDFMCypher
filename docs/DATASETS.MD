@@ -30,13 +30,6 @@ Les fichiers `stop_times_subset.csv` et `trips_subset.csv` sont des versions ré
 - Important pour PostgreSQL (clés étrangères) ET Neo4j (relations valides)
 
 **Génération** : Via le script `create_subset_by_route.sh`
-```bash
-# Par défaut : lignes 3, 7, 14, 11
-bash create_subset_by_route.sh
-
-# Personnalisé : ligne 11 uniquement
-METRO_LINES="11" bash create_subset_by_route.sh
-```
 
 **Stratégie de filtrage** :
 1. Sélection des `route_id` correspondant aux lignes de métro (route_type=1)
