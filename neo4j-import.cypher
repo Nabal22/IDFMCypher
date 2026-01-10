@@ -50,9 +50,9 @@ CALL {
   })
 } IN TRANSACTIONS OF 5000 ROWS;
 
-// trips
+// trips (subset on ne prend que certaines lignes de métros)
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///trips_subset.csv' AS row
   CREATE (:Trip {
     trip_id: row.trip_id,
     route_id: row.route_id,
@@ -73,7 +73,7 @@ CALL {
 
 // lier trips <-> routes
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///trips_subset.csv' AS row
   MATCH (t:Trip {trip_id: row.trip_id})
   MATCH (r:Route {route_id: row.route_id})
   CREATE (t)-[:BELONGS_TO]->(r)
@@ -103,9 +103,9 @@ CALL {
   }]->(to)
 } IN TRANSACTIONS OF 5000 ROWS;
 
-// stop_times (on prend mini subset - 100k lignes au lieu de 9M)
+// stop_times (on prend stop_times_subset - que certaines lignes de métros)
 CALL {
-  LOAD CSV WITH HEADERS FROM 'file:///stop_times_mini.csv' AS row
+  LOAD CSV WITH HEADERS FROM 'file:///stop_times_subset.csv' AS row
   MATCH (s:Stop {stop_id: row.stop_id})
   MATCH (t:Trip {trip_id: row.trip_id})
   CREATE (s)-[:STOP_TIME {
