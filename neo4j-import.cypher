@@ -22,7 +22,6 @@ CREATE (:Agency {
   agency_timezone: row.agency_timezone
 });
 
-MATCH (a:Agency) RETURN a.agency_name;
 
 // routes
 CALL {
@@ -36,8 +35,6 @@ CALL {
     route_color: row.route_color
   })
 } IN TRANSACTIONS OF 1000 ROWS;
-
-MATCH (r:Route) RETURN count(r);
 
 // stops
 CALL {
@@ -53,8 +50,6 @@ CALL {
   })
 } IN TRANSACTIONS OF 5000 ROWS;
 
-MATCH (s:Stop) RETURN count(s);
-
 // trips
 CALL {
   LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
@@ -68,8 +63,6 @@ CALL {
   })
 } IN TRANSACTIONS OF 10000 ROWS;
 
-MATCH (t:Trip) RETURN count(t);
-
 // lier routes <-> agencies
 CALL {
   LOAD CSV WITH HEADERS FROM 'file:///routes.csv' AS row
@@ -78,8 +71,6 @@ CALL {
   CREATE (r)-[:OPERATED_BY]->(a)
 } IN TRANSACTIONS OF 5000 ROWS;
 
-MATCH ()-[r:OPERATED_BY]->() RETURN count(r);
-
 // lier trips <-> routes
 CALL {
   LOAD CSV WITH HEADERS FROM 'file:///trips.csv' AS row
@@ -87,8 +78,6 @@ CALL {
   MATCH (r:Route {route_id: row.route_id})
   CREATE (t)-[:BELONGS_TO]->(r)
 } IN TRANSACTIONS OF 10000 ROWS;
-
-MATCH ()-[r:BELONGS_TO]->() RETURN count(r);
 
 // transfers
 CALL {
@@ -100,8 +89,6 @@ CALL {
     min_transfer_time: toInteger(row.min_transfer_time)
   }]->(to)
 } IN TRANSACTIONS OF 10000 ROWS;
-
-MATCH ()-[r:TRANSFER]->() RETURN count(r);
 
 // pathways
 CALL {
@@ -116,8 +103,6 @@ CALL {
   }]->(to)
 } IN TRANSACTIONS OF 5000 ROWS;
 
-MATCH ()-[r:PATHWAY]->() RETURN count(r);
-
 // stop_times (on prend mini subset - 100k lignes au lieu de 9M)
 CALL {
   LOAD CSV WITH HEADERS FROM 'file:///stop_times_mini.csv' AS row
@@ -130,5 +115,4 @@ CALL {
   }]->(t)
 } IN TRANSACTIONS OF 5000 ROWS;
 
-MATCH ()-[r:STOP_TIME]->() RETURN count(r);
 
