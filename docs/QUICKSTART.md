@@ -57,6 +57,16 @@ pip install neo4j
 # Modifier le mot de passe dans le script
 nano scripts/import_to_neo4j.py
 # Changer: NEO4J_PASSWORD = "your_password"
+```
+
+### 4. Préparer PostgreSQL (Optionnel - pour comparaisons SQL)
+
+```bash
+# 1. Créer la base de données
+createdb flights_db
+
+# 2. Exécuter le script d'import (tables + données + index)
+psql -U user -d flights_db -f import_postgresql.sql
 
 # Lancer l'import
 cd scripts

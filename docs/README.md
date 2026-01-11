@@ -71,9 +71,6 @@ Ce dossier contient toute la documentation du projet.
 ### Je veux comprendre le modèle de données
 → **[DATA_MODEL.md](DATA_MODEL.md)**
 
-### J'ai un problème avec PostgreSQL
-→ **[POSTGRESQL_INSTRUCTIONS.md](POSTGRESQL_INSTRUCTIONS.md)**
-
 ### J'ai un problème avec Neo4j
 → **[IMPORT_INSTRUCTIONS.md](IMPORT_INSTRUCTIONS.md)**
 
@@ -89,7 +86,6 @@ Ce dossier contient toute la documentation du projet.
 |---------|--------|---------|
 | QUICKSTART.md | 5.6 KB | Guide rapide |
 | QUERIES_GUIDE.md | 9.9 KB | Guide d'exécution complet |
-| POSTGRESQL_INSTRUCTIONS.md | 8.3 KB | PostgreSQL setup |
 | IMPORT_INSTRUCTIONS.md | 4.5 KB | Neo4j import |
 | DATA_MODEL.md | 8.9 KB | Modèle détaillé |
 | SETUP_SUMMARY.md | 8.5 KB | Résumé config |
