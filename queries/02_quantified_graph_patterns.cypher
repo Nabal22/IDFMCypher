@@ -9,19 +9,20 @@
 // CAS D'USAGE 1 : Exactement N escales
 // ========================================
 
-// Cypher 25 : Trouver des chemins avec EXACTEMENT 2 escales
+// Cypher 25 : Trouver des chemins avec EXACTEMENT 2 escales (3 vols)
 CYPHER 25
 MATCH path = (start:Airport {iata_code: 'LAX'})
-  ((intermediate:Airport)-->(:Airport)){2}
+  (()-[:FLIGHT]->(:Airport)){3}  // 3 vols = 2 escales
   (end:Airport {iata_code: 'JFK'})
 WHERE ALL(n IN nodes(path) WHERE single(x IN nodes(path) WHERE x = n))  // Pas de cycle
+WITH DISTINCT [n IN nodes(path) | n.iata_code] AS route
 RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  size(relationships(path)) AS hops
+  route,
+  size(route) - 1 AS hops
 LIMIT 10;
 
 // Cypher 5 : Sans quantified patterns (plus verbeux)
-// Doit spécifier explicitement 2 hops
+// Doit spécifier explicitement 3 vols (2 escales)
 MATCH path = (start:Airport {iata_code: 'LAX'})
   -[:FLIGHT]->(hub1:Airport)
   -[:FLIGHT]->(hub2:Airport)
@@ -29,9 +30,10 @@ MATCH path = (start:Airport {iata_code: 'LAX'})
 WHERE start <> hub1 AND start <> hub2 AND start <> end
   AND hub1 <> hub2 AND hub1 <> end
   AND hub2 <> end
+WITH DISTINCT [n IN nodes(path) | n.iata_code] AS route
 RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  size(relationships(path)) AS hops
+  route,
+  size(route) - 1 AS hops
 LIMIT 10;
 
 // ========================================
