@@ -11,7 +11,6 @@
 - ✅ Guides d'utilisation
 
 ### Ce qui reste à faire
-- 🔄 Import des données dans Neo4j
 - 🔄 Exécution des requêtes et collecte des résultats
 - 🔄 Analyse des plans d'exécution
 - 🔄 Mesures de performance
@@ -24,8 +23,6 @@
 2. `import/airports_projet.csv` - 312 aéroports avec GPS
 3. `import/airlines.csv` - 14 compagnies
 4. `scripts/normalize_data.py` - Nettoyage des données
-5. `scripts/import_to_postgresql.py` - Import automatisé PostgreSQL
-6. `scripts/import_to_neo4j.py` - Import automatisé Neo4j
 7. `import_postgresql.sql` - Script SQL d'import
 8. `import_neo4j.cypher` - Script Cypher d'import
 
@@ -45,10 +42,7 @@
 19. `CLAUDE.MD` - Instructions pour Claude Code (mise à jour)
 20. `QUERIES_GUIDE.md` - Guide complet d'exécution des requêtes
 21. `QUICKSTART.md` - Guide de démarrage rapide
-22. `IMPORT_INSTRUCTIONS.md` - Instructions import Neo4j
-23. `POSTGRESQL_INSTRUCTIONS.md` - Instructions PostgreSQL
 24. `DATA_MODEL.md` - Modèle de données détaillé
-25. `SETUP_SUMMARY.md` - Résumé de la configuration
 26. `PROJET_COMPLETED.md` - Ce fichier
 27. `COMMIT_MESSAGE.txt` - Message de commit
 28. `CONSIGNES.MD` - Consignes du projet (existant)
@@ -311,19 +305,6 @@ projet_cypher5_vs_25.zip
 - [ ] README à jour
 - [ ] Code testé et fonctionnel
 
-## 📞 Contact et Support
-
-### Ressources Disponibles
-- **Documentation complète** : Voir tous les fichiers .md
-- **Guide d'exécution** : `QUERIES_GUIDE.md`
-- **Quickstart** : `QUICKSTART.md`
-- **Articles** : Dossier `article/`
-
-### Si Problèmes
-1. Consulter `QUERIES_GUIDE.md` section Troubleshooting
-2. Vérifier `POSTGRESQL_INSTRUCTIONS.md` pour SQL
-3. Vérifier `IMPORT_INSTRUCTIONS.md` pour Neo4j
-4. Lire les commentaires dans les fichiers de requêtes
 
 ## 🎉 Conclusion
 

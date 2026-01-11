@@ -62,37 +62,6 @@ Ce guide explique comment exécuter les 4 comparaisons obligatoires de requêtes
 
 **Conclusion** : GDS reste indispensable pour algos complexes
 
-## 🚀 Prérequis
-
-### PostgreSQL
-```bash
-# Vérifier que la base est prête
-psql -d flights_db -c "SELECT COUNT(*) FROM flights;"
-# Devrait retourner 107230
-```
-
-### Neo4j
-```bash
-# Importer les données d'abord
-# Voir IMPORT_INSTRUCTIONS.md ou QUICKSTART.md
-
-# Dans Neo4j Browser
-:source import_neo4j.cypher
-
-# Vérifier
-MATCH ()-[f:FLIGHT]->() RETURN count(f);
-// Devrait retourner 107230
-```
-
-### Neo4j GDS
-```bash
-# Vérifier que GDS est installé
-RETURN gds.version();
-
-# Si pas installé, voir :
-# https://neo4j.com/docs/graph-data-science/current/installation/
-```
-
 ## 📖 Comment Exécuter les Requêtes
 
 ### Option 1 : Exécution Section par Section (Recommandé)

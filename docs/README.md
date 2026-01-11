@@ -27,21 +27,6 @@ Ce dossier contient toute la documentation du projet.
 
 ## 🗄️ Configuration des Bases de Données
 
-### PostgreSQL
-4. **[POSTGRESQL_INSTRUCTIONS.md](POSTGRESQL_INSTRUCTIONS.md)**
-   - Installation
-   - Import des données
-   - Schéma relationnel
-   - Requêtes SQL récursives
-   - Comparaison avec Neo4j
-
-### Neo4j
-5. **[IMPORT_INSTRUCTIONS.md](IMPORT_INSTRUCTIONS.md)**
-   - Configuration Neo4j
-   - Import via Browser ou cypher-shell
-   - Troubleshooting
-   - Vérification de l'import
-
 ## 📐 Modèle de Données
 
 6. **[DATA_MODEL.md](DATA_MODEL.md)**
@@ -50,15 +35,6 @@ Ce dossier contient toute la documentation du projet.
    - Patterns de requêtes courants
    - Considérations de performance
    - Évolutions possibles
-
-## 📋 Résumé Technique
-
-7. **[SETUP_SUMMARY.md](SETUP_SUMMARY.md)**
-   - Récapitulatif complet de la configuration
-   - Statistiques du dataset
-   - Top hubs et compagnies
-   - Corrections de données effectuées
-   - État d'avancement
 
 ## 🎯 Par Objectif
 
@@ -71,14 +47,8 @@ Ce dossier contient toute la documentation du projet.
 ### Je veux comprendre le modèle de données
 → **[DATA_MODEL.md](DATA_MODEL.md)**
 
-### J'ai un problème avec Neo4j
-→ **[IMPORT_INSTRUCTIONS.md](IMPORT_INSTRUCTIONS.md)**
-
 ### Je veux voir ce qui a été fait
 → **[PROJET_COMPLETED.md](PROJET_COMPLETED.md)**
-
-### Je veux un résumé de tout
-→ **[SETUP_SUMMARY.md](SETUP_SUMMARY.md)**
 
 ## 📏 Taille des Fichiers
 
@@ -86,9 +56,7 @@ Ce dossier contient toute la documentation du projet.
 |---------|--------|---------|
 | QUICKSTART.md | 5.6 KB | Guide rapide |
 | QUERIES_GUIDE.md | 9.9 KB | Guide d'exécution complet |
-| IMPORT_INSTRUCTIONS.md | 4.5 KB | Neo4j import |
 | DATA_MODEL.md | 8.9 KB | Modèle détaillé |
-| SETUP_SUMMARY.md | 8.5 KB | Résumé config |
 | PROJET_COMPLETED.md | 11 KB | État d'avancement |
 | **Total** | **56.7 KB** | **7 fichiers** |
 
