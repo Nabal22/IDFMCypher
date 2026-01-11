@@ -27,8 +27,10 @@ IDFMCypher/
 ## Current Status (Branch: flip-reset)
 - **Dataset**: Switched from IDFM transport to Kaggle Flight Delays 2015
 - **Data processed**: 107,230 flights from first week of January 2015
-- **Scope**: US domestic flights across 313 airports
-- **Ready for**: Neo4j import and query implementation
+- **Scope**: US domestic flights across 313 airports, 14 airlines
+- **PostgreSQL**: ✅ Database created and populated (flights_db)
+- **Neo4j**: 🔄 Ready for import
+- **Next**: Create and compare Cypher 5 vs Cypher 25 queries
 
 ## 3-Phase Workflow
 
