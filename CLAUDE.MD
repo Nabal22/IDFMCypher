@@ -1,13 +1,34 @@
 # Project Context for Claude Code
 
 ## Project Overview
-Master's level database project comparing Cypher 5 and Cypher 25 query languages using ---
+Master's level database project comparing Cypher 5 and Cypher 25 query languages using US flight data from 2015.
 
 ## Project Structure
 
 ```
-
+IDFMCypher/
+├── source/           # Raw datasets (Kaggle Flight Delays 2015)
+│   ├── flights.csv   # Full dataset (5M+ rows)
+│   ├── airports.csv  # US airports (323 airports)
+│   └── airlines.csv  # Airlines (14 airlines)
+├── scripts/          # Data preprocessing
+│   └── normalize_data.py  # Filters to first week of Jan 2015
+├── import/           # Cleaned datasets for Neo4j/PostgreSQL
+│   ├── flights_projet.csv   # ~107k flights (Jan 1-7, 2015)
+│   ├── airports_projet.csv  # 313 used airports
+│   └── airlines.csv         # 14 airlines
+├── queries/          # Cypher and SQL queries
+├── article/          # Research articles (SIGMOD, Cypher 25)
+├── CONSIGNES.MD      # Assignment requirements
+├── RAPPORT.md        # Project report
+└── CLAUDE.MD         # This file
 ```
+
+## Current Status (Branch: flip-reset)
+- **Dataset**: Switched from IDFM transport to Kaggle Flight Delays 2015
+- **Data processed**: 107,230 flights from first week of January 2015
+- **Scope**: US domestic flights across 313 airports
+- **Ready for**: Neo4j import and query implementation
 
 ## 3-Phase Workflow
 
@@ -30,18 +51,44 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 6. **Execution plans** (analyze BFS uni vs bidirectional)
 
 ### Dataset Characteristics
-- **Transport network**: Perfect for graph algorithms (paths, connectivity)
-- **Numeric edges**: travel_time, transfer_time, traversal_time
-- **Real-world**: IDFM Île-de-France public transport
+- **Source**: Kaggle "2015 Flight Delays and Cancellations" (US DOT)
+- **Period**: January 1-7, 2015 (first week only for manageable size)
+- **Scale**: 107,230 flights across 313 airports, 14 airlines
+- **Graph structure**: Perfect for path algorithms (multi-hop flights, connections)
+- **Edge properties**:
+  - `distance`: Flight distance in miles
+  - `delay`: Departure delay in minutes (can be negative)
+  - `departure_ts`: ISO timestamp (e.g., "2015-01-01T23:54:00")
+  - `arrival_ts`: ISO timestamp with overnight handling
+- **Node properties** (airports):
+  - `IATA_CODE`: 3-letter code (e.g., "LAX")
+  - Geographic: LATITUDE, LONGITUDE, CITY, STATE, COUNTRY
+- **Data cleaning** (scripts/normalize_data.py):
+  - Filters to first week of January 2015
+  - Handles midnight crossover (2400 → 0000)
+  - Computes overnight flights (arrival next day)
+  - Drops rows with missing times
+  - Filters airports to only those used in flights
 
 ## When Working With Claude
 
 ### I Should Prioritize
 1. **Part 1 before Part 2** - Cannot query without data
-2. **Test incrementally** - Small subset → full data
+2. **Use processed data** - import/ folder has cleaned CSVs ready for Neo4j
 3. **Document decisions** - Modeling choices for report
 4. **Reference SIGMOD** - Explain why patterns fail
 5. **Execution plans** - Show algorithmic differences
+
+### Graph Modeling Considerations
+- **Natural graph**: Airports = nodes, Flights = relationships
+- **Multi-hop paths**: Represent connecting flights (with time constraints)
+- **Properties on edges**: Distance, delay, timestamps enable rich queries
+- **Potential queries**:
+  - Shortest path by distance vs by number of hops
+  - Paths with constraints (max delay, time windows)
+  - Connected components (airport reachability)
+  - Hub detection (airports with most connections)
+  - Delay propagation patterns
 
 ### Key Files to Reference
 - `article/SIGMOD.MD` - For problematic patterns
