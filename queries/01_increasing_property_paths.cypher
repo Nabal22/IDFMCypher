@@ -11,19 +11,19 @@
 // CYPHER 5 : NOT EXISTS (PROBLÉMATIQUE)
 // ========================================
 // Cette version utilise NOT EXISTS avec reduce pour vérifier que
-// les retards sont croissants. Selon l'article SIGMOD, ce pattern
-// peut causer des timeouts même sur de petits graphes.
+// les retards sont croissants.
 
-// Version 1a: NOT EXISTS avec reduce (pattern problématique SIGMOD)
+// Version 1a: NOT EXISTS avec reduce
 // Trouve les chemins LAX → JFK avec retards croissants
+PROFILE
+CYPHER 5
 MATCH path = (start:Airport {iata_code: 'LAX'})
   -[:FLIGHT*2..4]->(end:Airport {iata_code: 'JFK'})
 WHERE NOT EXISTS {
-  // Vérifie qu'il n'existe PAS de paire de vols consécutifs où le retard décroît
   WITH path
   UNWIND range(0, size(relationships(path))-2) AS i
   WITH relationships(path) AS rels, i
-  WHERE rels[i].delay >= rels[i+1].delay  // Retard qui décroît ou stagne
+  WHERE rels[i].delay >= rels[i+1].delay
   RETURN 1
 }
 RETURN
@@ -31,33 +31,139 @@ RETURN
   [r IN relationships(path) | r.delay] AS delays,
   size(relationships(path)) AS hops,
   reduce(total = 0, r IN relationships(path) | total + r.delay) AS total_delay
-LIMIT 10;
+LIMIT 50;
 
 // ========================================
 // CYPHER 25 : allReduce (OPTIMISÉ)
 // ========================================
-// allReduce permet de vérifier la propriété croissante PENDANT
-// la traversée du graphe, éliminant les chemins invalides tôt.
-// Cela évite l'explosion combinatoire du Cypher 5.
+// allReduce permet de vérifier la propriété croissante pendant
+// la traversée du graphe.
 
+PROFILE
 CYPHER 25
-MATCH path = (start:Airport {iata_code: 'LAX'})
-  -[:FLIGHT*2..4]->(end:Airport {iata_code: 'JFK'})
+MATCH path =
+(start:Airport {iata_code: 'LAX'})
+  ((:Airport)-[f:FLIGHT]->(:Airport)){2,4}
+(end:Airport {iata_code: 'JFK'})
 WHERE allReduce(
-  prev_delay = -999999.0,  // Initialiser avec une valeur très basse
-  rel IN relationships(path) |
+  prev_delay = -999999.0,
+  rel IN f |
     CASE
       WHEN rel.delay > prev_delay THEN rel.delay
-      ELSE null  // Si retard ne croît pas, renvoyer null pour invalider le chemin
+      ELSE null
     END,
-  prev_delay IS NOT NULL  // Condition finale : tous les retards doivent être croissants
+  prev_delay IS NOT NULL
 )
 RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  [r IN relationships(path) | r.delay] AS delays,
-  size(relationships(path)) AS hops,
-  reduce(total = 0.0, r IN relationships(path) | total + r.delay) AS total_delay
-LIMIT 10;
+  path
+LIMIT 50;
+
+// ========================================
+// Résultats Requêtes
+// ========================================
+
+--------------------------------
+
+## Cypher 5
+
+Cypher 5
+
+Planner COST
+
+Runtime PIPELINED
+
+Runtime version 2025.11
+
+Batch size 128
+
++------------------------+----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| Operator               | Id | Details                                                                                              | Estimated Rows | Rows   | DB Hits  | Memory (Bytes) | Page Cache Hits/Misses | Time (ms) | Pipeline            |
++------------------------+----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| +ProduceResults        |  0 | route, delays, hops, total_delay                                                                     |             50 |     50 |        0 |              0 |                    0/0 |     0,777 |                     |
+| |                      +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+                     |
+| +Projection            |  1 | [n IN nodes((start)-[anon_0*]->(end)) | n.iata_code] AS route,                                       |             50 |     50 |     1300 |                |                 1396/0 |     0,849 |                     |
+| |                      |    | [r IN relationships((start)-[anon_0*]->(end)) | r.delay] AS delays,                                  |                |        |          |                |                        |           |                     |
+| |                      |    | size(relationships((start)-[anon_0*]->(end))) AS hops, reduce(total = $autoint_6, r IN relationships |                |        |          |                |                        |           |                     |
+| |                      |    | ((start)-[anon_0*]->(end)) | total + r.delay) AS total_delay                                         |                |        |          |                |                        |           |                     |
+| |                      +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+                     |
+| +Limit                 |  2 | 50                                                                                                   |             50 |     50 |        0 |             32 |                    0/0 |     0,364 | In Pipeline 2       |
+| |                      +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| +Apply                 |  3 |                                                                                                      |             50 |     52 |        0 |                |                    0/0 |           |                     |
+| |\                     +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| | +Anti                | 15 |                                                                                                      |             50 |     52 |        0 |           2696 |                    0/0 |     9,111 | In Pipeline 2       |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| | +Limit               | 14 | 1                                                                                                    |            122 | 319578 |        0 |            752 |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Projection          |  4 | $autoint_5 AS `1`                                                                                    |            172 | 319578 |        0 |                |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Filter              |  5 | (rels[i]).delay >= (rels[i + $autoint_4]).delay                                                      |            172 | 319578 |  1283196 |                |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Projection          |  6 | relationships(path) AS rels                                                                          |            572 | 320799 |        0 |                |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Unwind              |  7 | range($autoint_2, size(relationships(path)) - $autoint_3) AS i                                       |            572 | 320799 |        0 |                |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Projection          |  8 | (start)-[anon_0*]->(end) AS path                                                                     |             57 | 319630 |        0 |                |                        |           |                     |
+| | |                    +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| | +Argument            |  9 | start, anon_0, end                                                                                   |            172 | 319630 |        0 |          21776 |              1288807/0 |   456,281 | Fused in Pipeline 1 |
+| |                      +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+| +VarLengthExpand(Into) | 10 | (start)-[anon_0:FLIGHT*2..4]->(end)                                                                  |            172 | 319631 | 15055885 |            128 |                        |           |                     |
+| |                      +----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+                        |           |                     |
+| +MultiNodeIndexSeek    | 11 | UNIQUE start:Airport(iata_code) WHERE iata_code = $autostring_0,                                     |              0 |      0 |        0 |            376 |               216093/0 |   994,809 | Fused in Pipeline 0 |
+|                        |    | UNIQUE end:Airport(iata_code) WHERE iata_code = $autostring_1                                        |                |        |          |                |                        |           |                     |
++------------------------+----+------------------------------------------------------------------------------------------------------+----------------+--------+----------+----------------+------------------------+-----------+---------------------+
+
+Total database accesses: 16340381, total allocated memory: 25872
+
+
+#CYPHER 25 : allReduce (OPTIMISÉ)
+
+Cypher 25
+
+Planner COST
+
+Runtime PIPELINED
+
+Runtime version 2025.11
+
+Batch size 128
+
++----------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
+| Operator             | Id | Details                                                                                              | Estimated Rows | Rows | DB Hits | Memory (Bytes) | Page Cache Hits/Misses | Time (ms) | Pipeline            | Indexes Used           |
++----------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
+| +ProduceResults      |  0 | route, delays, hops, total_delay                                                                     |             50 |   50 |       0 |              0 |                        |           |                     |                        |
+| |                    +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| +Projection          |  1 | [n IN nodes((start)-[f*]->(end)) | n.iata_code] AS route,                                            |             50 |   50 |    1004 |                |                        |           |                     |                        |
+| |                    |    | [r IN relationships((start)-[f*]->(end)) | r.delay] AS delays,                                       |                |      |         |                |                        |           |                     |                        |
+| |                    |    | size(relationships((start)-[f*]->(end))) AS hops, reduce(total = $autodouble_3, r IN relationships(( |                |      |         |                |                        |           |                     |                        |
+| |                    |    | start)-[f*]->(end)) | total + r.delay) AS total_delay                                                |                |      |         |                |                        |           |                     |                        |
+| |                    +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| +Limit               |  2 | 50                                                                                                   |             50 |   50 |       0 |             32 |                        |           |                     |                        |
+| |                    +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| +NullifyMetadata     | 12 |                                                                                                      |             50 |   50 |       0 |                |                        |           |                     |                        |
+| |                    +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| +Repeat(Into, Trail) |  3 | (start) (...){2, 4} (end)                                                                            |             50 |   50 |       0 |        2804808 |                  687/0 |     0,604 | Fused in Pipeline 2 |                        |
+| |                    |    |                                                                                                      |                |      |         |                |                        |           |                     |                        |
+| |                    |    | inlined allReduce() initializers:                                                                    |                |      |         |                |                        |           |                     |                        |
+| |                    |    |   prev_delay = $autodouble_2                                                                         |                |      |         |                |                        |           |                     |                        |
+| |\                   +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
+| | +Filter            |  4 | prev_delay IS NOT NULL AND isRepeatTrailUnique(f) AND anon_4:Airport                                 |              0 | 6362 |   12724 |                |                        |           |                     |                        |
+| | |                  +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| | +Projection        |  5 | CASE                                                                                                 |              0 | 9289 |   15651 |                |                        |           |                     |                        |
+| | |                  |    |   WHEN f.delay > prev_delay THEN f.delay                                                             |                |      |         |                |                        |           |                     |                        |
+| | |                  |    |   ELSE NULL                                                                                          |                |      |         |                |                        |           |                     |                        |
+| | |                  |    | END AS prev_delay                                                                                    |                |      |         |                |                        |           |                     |                        |
+| | |                  +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| | +Expand(All)       |  6 | (anon_2)-[f:FLIGHT]->(anon_4)                                                                        |              0 | 9290 |    9295 |                |                        |           |                     |                        |
+| | |                  +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| | +Filter            |  7 | anon_2:Airport                                                                                       |              0 |    5 |    1226 |                |                        |           |                     |                        |
+| | |                  +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+                        |           |                     +------------------------+
+| | +Argument          |  8 | anon_2, prev_delay                                                                                   |              0 |    4 |       0 |        1163800 |                 1134/0 |     2,877 | Fused in Pipeline 1 |                        |
+| |                    +----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
+| +MultiNodeIndexSeek  |  9 | UNIQUE start:Airport(iata_code) WHERE iata_code = $autostring_0,                                     |              1 |    1 |       4 |            376 |                    2/0 |     0,196 | In Pipeline 0       | airport_iata_unique: 2 |
+|                      |    | UNIQUE end:Airport(iata_code) WHERE iata_code = $autostring_1                                        |                |      |         |                |                        |           |                     |                        |
++----------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
+
+Total database accesses: 39904, total allocated memory: 3969016
 
 
 // ========================================
@@ -65,28 +171,18 @@ LIMIT 10;
 // ========================================
 
 /*
-1. PROBLÈME (SIGMOD) :
-   - reduce/all dans WHERE = évaluation APRÈS génération de tous les chemins
-   - Explosion combinatoire : O(n^k) chemins pour k escales
-   - Même avec 10 nœuds, timeout observé dans SIGMOD
+ANALYSE COMPARATIVE DES PLANS D'EXÉCUTION
 
-2. SOLUTION (Cypher 25) :
-   - allReduce évalue PENDANT la traversée (pruning précoce)
-   - Élimine les branches invalides dès qu'un retard décroît
-   - Réduit la complexité pratique de millions → milliers de chemins
+1. MÉTRIQUES CLÉS
+   DB Hits:    16,340,381 (Cypher 5)  vs  39,904 (Cypher 25)     → 409x MOINS
+   Temps:      ~1,451 ms              vs  ~3.5 ms                → 415x PLUS RAPIDE
+   Rows:       320,799                vs  9,290                  → 34.5x MOINS
+   Mémoire:    25 KB                  vs  3.9 MB                 → Trade-off acceptable
 
-3. RÉSULTATS ATTENDUS :
-   - Cypher 5 : Timeout ou très lent (>100s) sur graphe complet
-   - Cypher 25 : <2s même avec depth 4
-   - Speedup : 120x selon l'article (AoC Day 12)
+2. STRATÉGIES D'EXÉCUTION
+   Cypher 5:  VarLengthExpand génère 319,631 chemins → Apply+Anti filtre → 52 valides
+   Cypher 25: Repeat(Trail) avec pruning pendant traversée → 6,362 chemins valides
 
-4. PLANS D'EXÉCUTION :
-   - Cypher 5 : Expand All → Filter (post-processing)
-   - Cypher 25 : Expand + Filter simultanés (stateful traversal)
-
-5. DANS LE RAPPORT :
-   - Montrer les deux requêtes côte à côte
-   - Comparer les PROFILE (db hits, temps)
-   - Expliquer pourquoi all() crée le problème NP-complet
-   - Référencer SIGMOD Fig. 5 (Hamiltonian path timeout à 10 nœuds)
+   Confirme SIGMOD: reduce/all dans WHERE ne scale pas
+   Les deux requêtes retournent les 50 mêmes résultats (ORDER BY + LIMIT)
 */

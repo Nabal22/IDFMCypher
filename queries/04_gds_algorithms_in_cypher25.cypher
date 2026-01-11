@@ -85,7 +85,6 @@ RETURN
   triangles AS triangle_count
 ORDER BY triangle_count DESC
 LIMIT 10;
-
 // Completed after 13 minutes 14 secondes
 
 // ========================================
