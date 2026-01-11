@@ -6,7 +6,7 @@ Master's level database project comparing Cypher 5 and Cypher 25 query languages
 ## Project Structure
 
 ```
-IDFMCypher/
+FlightCypher/
 ├── source/           # Raw datasets (Kaggle Flight Delays 2015)
 │   ├── flights.csv   # Full dataset (5M+ rows)
 │   ├── airports.csv  # US airports (323 airports)

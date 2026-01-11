@@ -1,6 +1,5 @@
 # Projet Cypher 5 vs Cypher 25 - Comparaison des Langages de Requêtes sur Graphes
 
-**Master Base de Données - IDFM**
 **Auteurs** : Romain Groult & Alban Talagrand
 **Date** : Janvier 2025
 
@@ -35,7 +34,7 @@ Ce projet compare les performances et capacités de Cypher 5 et Cypher 25 en uti
 ## 📂 Structure du Projet
 
 ```
-IDFMCypher/
+FlightCypher/
 ├── source/                    # Données brutes Kaggle
 ├── import/                    # Données nettoyées (CSV)
 │   ├── flights_projet.csv     # 107,230 vols
@@ -169,10 +168,6 @@ Cypher 5 avec `reduce()` dans WHERE créé des requêtes NP-complètes :
 ### Documentation Neo4j
 - **Cypher Manual** : https://neo4j.com/docs/cypher-manual/current/
 - **GDS Documentation** : https://neo4j.com/docs/graph-data-science/current/
-
-## 📝 Licence
-
-Projet académique - Master Base de Données IDFM - Janvier 2025
 
 ---
 

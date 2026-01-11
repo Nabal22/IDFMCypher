@@ -271,7 +271,7 @@ Si les performances réelles diffèrent significativement des estimations :
 
 ### Structure du Projet
 ```
-IDFMCypher/
+FlightCypher/
 ├── source/              # Données brutes Kaggle
 ├── import/              # Données nettoyées (3 CSV)
 ├── scripts/             # normalize_data.py
