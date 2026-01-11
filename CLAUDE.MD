@@ -25,12 +25,15 @@ IDFMCypher/
 ```
 
 ## Current Status (Branch: flip-reset)
-- **Dataset**: Switched from IDFM transport to Kaggle Flight Delays 2015
-- **Data processed**: 107,230 flights from first week of January 2015
-- **Scope**: US domestic flights across 313 airports, 14 airlines
+- **Dataset**: ✅ Kaggle Flight Delays 2015 processed and cleaned
+- **Data processed**: ✅ 107,230 flights from first week of January 2015
+- **Scope**: ✅ US domestic flights across 312 airports, 14 airlines
 - **PostgreSQL**: ✅ Database created and populated (flights_db)
 - **Neo4j**: ✅ Database created and populated (flights_graph)
-- **Next**: Test queries in both databases
+- **Queries**: ✅ 4 query comparison sets created (01-04)
+- **Report**: ✅ RAPPORT.md completed (57KB, 875 lines)
+- **PDF**: ✅ RAPPORT.pdf generated via pandoc
+- **Current Phase**: Testing queries in Neo4j and PostgreSQL
 
 ## 3-Phase Workflow
 
@@ -44,13 +47,19 @@ IDFMCypher/
 
 **Solution**: Cypher 25 uses quantified patterns, allReduce, dedicated constructs
 
-### 6 Mandatory Query Comparisons
-1. **Increasing property paths** (NOT EXISTS vs allReduce)
-2. **Quantified graph patterns** (Cypher 25 feature)
-3. **Shortest path algorithms** (Cypher 5, 25, GDS comparison)
-4. **GDS algorithms in Cypher 25** (implement directly)
-5. **SQL comparisons** (including recursive queries)
-6. **Execution plans** (analyze BFS uni vs bidirectional)
+### 4 Mandatory Query Comparisons (Created)
+1. ✅ **Increasing property paths** - `queries/01_increasing_property_paths.cypher/.sql`
+   - Cypher 5 with all() vs Cypher 25 with allReduce()
+   - Demonstrates NP-complete problem and solution
+2. ✅ **Quantified graph patterns** - `queries/02_quantified_graph_patterns.cypher/.sql`
+   - New Cypher 25 `{n,m}` syntax
+   - SQL WITH RECURSIVE comparison
+3. ✅ **Shortest path algorithms** - `queries/03_shortest_path_algorithms.cypher/.sql`
+   - Cypher 5 shortestPath(), Cypher 25 SHORTEST
+   - GDS (Dijkstra, A*, Yen) vs SQL recursive
+4. ✅ **GDS vs pure Cypher 25** - `queries/04_gds_algorithms_in_cypher25.cypher`
+   - Degree, Triangle Count (feasible)
+   - PageRank, Betweenness, Louvain (impossible)
 
 ### Dataset Characteristics
 - **Source**: Kaggle "2015 Flight Delays and Cancellations" (US DOT)
@@ -72,14 +81,22 @@ IDFMCypher/
   - Drops rows with missing times
   - Filters airports to only those used in flights
 
-## When Working With Claude
+## Project Deliverables
 
-### I Should Prioritize
-1. **Part 1 before Part 2** - Cannot query without data
-2. **Use processed data** - import/ folder has cleaned CSVs ready for Neo4j
-3. **Document decisions** - Modeling choices for report
-4. **Reference SIGMOD** - Explain why patterns fail
-5. **Execution plans** - Show algorithmic differences
+### Completed ✅
+1. ✅ **Data import** - Neo4j and PostgreSQL fully populated
+2. ✅ **Data cleaning** - GPS coordinates fixed, timestamps normalized
+3. ✅ **Query files** - 4 comparison sets + validation queries
+4. ✅ **Report** - RAPPORT.md (57KB) covering all requirements
+5. ✅ **PDF generation** - RAPPORT.pdf via pandoc
+6. ✅ **Documentation** - 7 docs files (QUERIES_GUIDE, DATA_MODEL, etc.)
+
+### Next Steps 🔄
+1. **Test Neo4j queries** - Execute queries in Neo4j Browser/CLI
+2. **Test PostgreSQL queries** - Execute queries via psql
+3. **Gather performance metrics** - PROFILE/EXPLAIN ANALYZE results
+4. **Document query results** - Update report with actual timings
+5. **Create execution plan screenshots** - For report appendix
 
 ### Graph Modeling Considerations
 - **Natural graph**: Airports = nodes, Flights = relationships

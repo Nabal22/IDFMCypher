@@ -1,51 +1,57 @@
 # Projet Cypher 5 vs 25 - Résumé du Travail Accompli
 
-## ✅ Statut Global : 70% Complété
+## ✅ Statut Global : 90% Complété
 
 ### Ce qui est fait
 - ✅ Dataset nettoyé et préparé (107,230 vols)
-- ✅ Base PostgreSQL créée et peuplée
+- ✅ Base PostgreSQL créée et peuplée (flights_db)
+- ✅ Base Neo4j créée et peuplée (flights_graph)
 - ✅ 4 comparaisons de requêtes implémentées
-- ✅ Documentation complète (13 fichiers)
+- ✅ Documentation complète (7+ fichiers docs/)
 - ✅ Scripts d'import (Neo4j + PostgreSQL)
-- ✅ Guides d'utilisation
+- ✅ Guides d'utilisation (QUERIES_GUIDE, QUICKSTART)
+- ✅ Rapport complet (RAPPORT.md - 875 lignes, 57KB)
+- ✅ PDF généré (RAPPORT.pdf - 87KB)
 
-### Ce qui reste à faire
-- 🔄 Exécution des requêtes et collecte des résultats
-- 🔄 Analyse des plans d'exécution
-- 🔄 Mesures de performance
-- 🔄 Rédaction du rapport final
+### Ce qui reste à faire (Phase de test)
+- 🔄 **Exécution des requêtes Neo4j** - Tester queries/*.cypher
+- 🔄 **Exécution des requêtes PostgreSQL** - Tester queries/*.sql
+- 🔄 **Collecte des métriques** - PROFILE/EXPLAIN ANALYZE
+- 🔄 **Validation des résultats** - Vérifier que les requêtes fonctionnent
+- 🔄 **Ajustements report** - Ajouter résultats réels si différents des estimations
 
-## 📊 Fichiers Créés (28 fichiers)
+## 📊 Fichiers Créés (25 fichiers)
 
-### Données et Scripts (8 fichiers)
+### Données et Scripts (6 fichiers)
 1. `import/flights_projet.csv` - 107,230 vols nettoyés
 2. `import/airports_projet.csv` - 312 aéroports avec GPS
 3. `import/airlines.csv` - 14 compagnies
 4. `scripts/normalize_data.py` - Nettoyage des données
-7. `import_postgresql.sql` - Script SQL d'import
-8. `import_neo4j.cypher` - Script Cypher d'import
+5. `import_postgresql.sql` - Script SQL d'import
+6. `import_neo4j.cypher` - Script Cypher d'import
 
 ### Requêtes Comparatives (9 fichiers)
-9. `queries/00_validation.sql` - Validation PostgreSQL (50+ requêtes)
-10. `queries/00_validation.cypher` - Validation Neo4j (40+ requêtes)
-11. `queries/01_increasing_property_paths.cypher` - Cypher 5 vs 25 (allReduce)
-12. `queries/01_increasing_property_paths.sql` - Version SQL équivalente
-13. `queries/02_quantified_graph_patterns.cypher` - Quantified patterns {n,m}
-14. `queries/02_quantified_graph_patterns.sql` - Version SQL
-15. `queries/03_shortest_path_algorithms.cypher` - Cypher 5/25/GDS
-16. `queries/03_shortest_path_algorithms.sql` - Dijkstra SQL
-17. `queries/04_gds_algorithms_in_cypher25.cypher` - GDS vs Cypher pur
+7. `queries/00_validation.sql` - Validation PostgreSQL
+8. `queries/00_validation.cypher` - Validation Neo4j
+9. `queries/01_increasing_property_paths.cypher` - Cypher 5 vs 25 (allReduce)
+10. `queries/01_increasing_property_paths.sql` - Version SQL
+11. `queries/02_quantified_graph_patterns.cypher` - Quantified patterns {n,m}
+12. `queries/02_quantified_graph_patterns.sql` - Version SQL
+13. `queries/03_shortest_path_algorithms.cypher` - Cypher 5/25/GDS
+14. `queries/03_shortest_path_algorithms.sql` - Dijkstra SQL
+15. `queries/04_gds_algorithms_in_cypher25.cypher` - GDS vs Cypher pur
 
-### Documentation (11 fichiers)
-18. `README.md` - Vue d'ensemble du projet (mise à jour)
-19. `CLAUDE.MD` - Instructions pour Claude Code (mise à jour)
-20. `QUERIES_GUIDE.md` - Guide complet d'exécution des requêtes
-21. `QUICKSTART.md` - Guide de démarrage rapide
-24. `DATA_MODEL.md` - Modèle de données détaillé
-26. `PROJET_COMPLETED.md` - Ce fichier
-27. `COMMIT_MESSAGE.txt` - Message de commit
-28. `CONSIGNES.MD` - Consignes du projet (existant)
+### Documentation (10 fichiers)
+16. `CLAUDE.MD` - Instructions pour Claude Code
+17. `CONSIGNES.MD` - Consignes du projet
+18. `RAPPORT.md` - Rapport complet (875 lignes, 57KB)
+19. `RAPPORT.pdf` - Rapport PDF généré (87KB)
+20. `docs/README.md` - Index documentation
+21. `docs/QUERIES_GUIDE.md` - Guide complet d'exécution des requêtes
+22. `docs/QUICKSTART.md` - Guide de démarrage rapide
+23. `docs/DATA_MODEL.md` - Modèle de données détaillé
+24. `docs/PROJET_COMPLETED.md` - Ce fichier
+25. Articles (3 fichiers dans `article/`)
 
 ## 🎯 Les 4 Comparaisons Implémentées
 
@@ -223,102 +229,104 @@ Bonus :
 - Cypher ~1.5x plus concis en moyenne
 - Mais SQL plus explicite
 
-## 🚀 Prochaines Étapes Détaillées
+## 🚀 Prochaines Étapes (Phase de Test)
 
-### 2. Exécuter les Requêtes (2-3h)
-Pour chaque fichier de requête :
-- Copier-coller section par section
-- Noter les résultats
-- Capturer les PROFILE/EXPLAIN
+### 1. Tester les Requêtes Neo4j (1-2h)
+```bash
+# Démarrer Neo4j Browser : http://localhost:7474
+# Exécuter dans l'ordre :
+1. queries/00_validation.cypher (vérifier import)
+2. queries/01_increasing_property_paths.cypher
+3. queries/02_quantified_graph_patterns.cypher
+4. queries/03_shortest_path_algorithms.cypher
+5. queries/04_gds_algorithms_in_cypher25.cypher
+```
 
-### 3. Analyser les Plans (2-3h)
-- Comparer db hits Cypher 5 vs 25
-- Comparer temps SQL vs Cypher
-- Identifier les algorithmes utilisés
-- Créer des tableaux de comparaison
+Pour chaque requête :
+- ✅ Vérifier qu'elle s'exécute sans erreur
+- ✅ Noter le temps d'exécution
+- ✅ Capturer PROFILE si timeout ou résultat inattendu
 
-### 4. Mesurer les Performances (1-2h)
-- Chronométrer chaque requête
-- Varier les paramètres (profondeur, nœuds)
-- Identifier les points de timeout
-- Documenter les speedups
+### 2. Tester les Requêtes PostgreSQL (30min - 1h)
+```bash
+psql -d flights_db -f queries/00_validation.sql
+psql -d flights_db -f queries/01_increasing_property_paths.sql
+psql -d flights_db -f queries/02_quantified_graph_patterns.sql
+psql -d flights_db -f queries/03_shortest_path_algorithms.sql
+```
 
-### 5. Rédiger le Rapport (5-10h)
-Structure suggérée :
-1. Introduction (contexte, objectifs)
-2. Modélisation (choix graphe, contraintes)
-3. Import et nettoyage (scripts, corrections)
-4. Les 4 comparaisons (code, plans, analyse)
-5. Problèmes NP-complets (SIGMOD, solutions)
-6. Conclusions (quand utiliser quoi)
+Pour chaque requête :
+- ✅ Vérifier qu'elle s'exécute
+- ✅ Noter si timeout (normal pour certaines)
+- ✅ Capturer EXPLAIN ANALYZE si besoin
 
-**Total estimé : 11-20h de travail restant**
+### 3. Ajustements Rapport (30min - 1h)
+Si les performances réelles diffèrent significativement des estimations :
+- Mettre à jour les chiffres dans RAPPORT.md sections 4.1-4.4
+- Regénérer RAPPORT.pdf avec `pandoc`
+
+**Total estimé : 2-5h de travail restant**
 
 ## 📁 Organisation des Fichiers pour Rendu
 
-### Archive à Soumettre
+### Structure du Projet
 ```
-projet_cypher5_vs_25.zip
-├── source/              # Données brutes
-├── import/              # Données nettoyées
-├── scripts/             # Scripts Python
-├── queries/             # Toutes les requêtes
-├── article/             # Articles de référence
-├── README.md            # Vue d'ensemble
-├── QUERIES_GUIDE.md     # Guide d'exécution
-├── rapport.pdf          # Rapport final (à rédiger)
-└── resultats/           # À créer
-    ├── plans_execution/ # Screenshots PROFILE/EXPLAIN
-    ├── performances/    # Tableaux de métriques
-    └── captures/        # Autres screenshots
+IDFMCypher/
+├── source/              # Données brutes Kaggle
+├── import/              # Données nettoyées (3 CSV)
+├── scripts/             # normalize_data.py
+├── queries/             # 9 fichiers de requêtes
+├── article/             # Articles de référence SIGMOD
+├── docs/                # Documentation (5 fichiers)
+├── import_neo4j.cypher  # Script import Neo4j
+├── import_postgresql.sql # Script import PostgreSQL
+├── CLAUDE.MD            # Instructions Claude
+├── CONSIGNES.MD         # Consignes projet
+├── RAPPORT.md           # Rapport complet ✅
+└── RAPPORT.pdf          # Rapport PDF ✅
 ```
 
 ## ✅ Checklist Finale
 
-### Avant Exécution
-- [ ] PostgreSQL : Base flights_db créée et peuplée
-- [ ] Neo4j : Installé et démarré
-- [ ] GDS : Library installée
-- [ ] Fichiers CSV : Accessibles pour Neo4j
+### Préparation (Complété ✅)
+- [x] PostgreSQL : Base flights_db créée et peuplée
+- [x] Neo4j : Données importées (107,230 vols)
+- [x] Requêtes : 4 comparaisons créées
+- [x] Documentation : 5 fichiers docs/
+- [x] Rapport : RAPPORT.md complété (875 lignes)
+- [x] PDF : RAPPORT.pdf généré (87KB)
 
-### Pendant Exécution
-- [ ] Import Neo4j réussi (107,230 vols)
-- [ ] Chaque requête testée et fonctionnelle
-- [ ] PROFILE collectés pour Cypher
-- [ ] EXPLAIN ANALYZE collectés pour SQL
-- [ ] Screenshots des plans d'exécution
-- [ ] Métriques de performance enregistrées
+### Phase de Test (En cours 🔄)
+- [ ] Chaque requête Neo4j testée et fonctionnelle
+- [ ] Chaque requête PostgreSQL testée
+- [ ] PROFILE collectés pour Cypher (si différences)
+- [ ] EXPLAIN ANALYZE collectés pour SQL (si différences)
+- [ ] Métriques de performance validées
 
-### Pour le Rapport
-- [ ] Code source commenté et propre
-- [ ] Comparaisons documentées
-- [ ] Plans d'exécution analysés
-- [ ] Références aux articles
-- [ ] Explications des résultats
-- [ ] Graphiques/tableaux de comparaison
-- [ ] Conclusions et recommandations
-
-### Avant Rendu
-- [ ] Rapport relu et corrigé
-- [ ] Archive ZIP créée
-- [ ] Tous les fichiers inclus
-- [ ] README à jour
-- [ ] Code testé et fonctionnel
+### Avant Rendu (Final)
+- [ ] Tests terminés et validés
+- [ ] Rapport ajusté si nécessaire
+- [ ] PDF régénéré si modifications
+- [ ] Tous les fichiers vérifiés
 
 
 ## 🎉 Conclusion
 
-Le projet est à **70% complété**. La partie la plus complexe (création des requêtes comparatives) est terminée. Il reste principalement :
-- L'exécution pratique
-- La collecte des résultats
-- La rédaction du rapport
+Le projet est à **90% complété**. Toutes les parties structurantes sont terminées :
+- ✅ Dataset de qualité (107,230 vols nettoyés)
+- ✅ Bases de données prêtes (Neo4j + PostgreSQL)
+- ✅ Requêtes implémentées et commentées (4 comparaisons + validation)
+- ✅ Documentation exhaustive (7+ fichiers)
+- ✅ **Rapport complet** (RAPPORT.md - 875 lignes, 57KB)
+- ✅ **PDF généré** (RAPPORT.pdf - 87KB)
 
-Toute la fondation est solide :
-- ✅ Dataset de qualité
-- ✅ Bases de données prêtes
-- ✅ Requêtes implémentées et commentées
-- ✅ Documentation exhaustive
+Il reste principalement :
+- 🔄 Phase de test : Exécuter les requêtes
+- 🔄 Validation : Vérifier que tout fonctionne
+- 🔄 Ajustements : Corriger métriques si nécessaire
 
-**Temps estimé restant : 11-20 heures**
+**Temps estimé restant : 2-5 heures** (principalement tests)
 
-Bon courage pour la suite ! 🚀
+Le rapport est déjà écrit avec des estimations de performance basées sur les articles SIGMOD. Si les tests réels donnent des résultats différents, il faudra simplement ajuster les chiffres.
+
+Bon courage pour les tests ! 🚀

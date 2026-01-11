@@ -44,9 +44,5 @@ ls -lh import/
 createdb flights_db
 
 # 2. Exécuter le script d'import (tables + données + index)
-psql -U user -d flights_db -f import_postgresql.sql
-
-# Lancer l'import
-cd scripts
-python import_to_neo4j.py
+psql -d flights_db -f import_postgresql.sql
 ```
