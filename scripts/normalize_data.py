@@ -1,58 +1,105 @@
 import pandas as pd
 import numpy as np
 
-# 1. Chargement des données (on ne charge que les colonnes utiles pour économiser la RAM)
-print("Chargement des vols...")
-cols_to_keep = ['YEAR', 'MONTH', 'DAY', 'AIRLINE', 'FLIGHT_NUMBER', 
-                'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 
-                'DEPARTURE_TIME', 'ARRIVAL_TIME', 'DISTANCE', 'DEPARTURE_DELAY']
+# --- CONFIGURATION ---
+INPUT_FLIGHTS = '../source/flights.csv'
+INPUT_AIRPORTS = '../source/airports.csv'
+OUTPUT_FLIGHTS = '../import/flights_projet.csv'
+OUTPUT_AIRPORTS = '../import/airports_projet.csv'
 
-# On lit tout le fichier mais c'est rapide si on filtre ensuite
-df = pd.read_csv('../source/flights.csv', usecols=cols_to_keep)
+# 1. Chargement uniquement des colonens voulues
+columns_to_keep = [
+    'YEAR', 'MONTH', 'DAY',
+    'AIRLINE',
+    'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT',
+    'DEPARTURE_TIME', 'ARRIVAL_TIME',
+    'DEPARTURE_DELAY', 'DISTANCE'
+]
 
-# 2. Filtrage : On garde seulement les 7 premiers jours de Janvier
-# Cela donne environ 100k lignes, soit ~10-15 Mo
-df_small = df[(df['MONTH'] == 1) & (df['DAY'] <= 15)].copy()
+print("Lecture du fichier flights.csv ...")
 
-# 3. Nettoyage et Formatage des Dates pour Neo4j
-print("Nettoyage des dates...")
+dtype_dict = {'ORIGIN_AIRPORT': str, 'DESTINATION_AIRPORT': str}
+df = pd.read_csv(INPUT_FLIGHTS, usecols=columns_to_keep, dtype=dtype_dict)
 
-# Fonction pour convertir le format '1345' (float) en '13:45:00'
-def format_time(t):
-    if pd.isna(t): return None
-    s = str(int(t)).zfill(4) # Transforme 900.0 en "0900"
-    if s == '2400': s = '0000' # Gestion minuit
-    if len(s) > 4: return None
-    return f"{s[:2]}:{s[2:]}:00"
+print(f"Nombre de lignes chargées : {len(df)}")
 
-# Création de la colonne timestamp complète (ISO 8601)
-# Format attendu par Neo4j : "YYYY-MM-DDTHH:MM:SS"
-df_small['dep_time_str'] = df_small['DEPARTURE_TIME'].apply(format_time)
-df_small = df_small.dropna(subset=['dep_time_str']) # On vire les vols annulés sans heure
+# 2. Filtre des vols sur la date (1ère semaine de l'année)
+df_small = df[
+    (df['MONTH'] == 1) &
+    (df['DAY'] <= 7)
+].copy()
 
-df_small['full_date'] = (
-    df_small['YEAR'].astype(str) + '-' + 
-    df_small['MONTH'].astype(str).str.zfill(2) + '-' + 
-    df_small['DAY'].astype(str).str.zfill(2) + 'T' + 
+print(f"Taille de l'échantillon : {len(df_small)}")
+
+print("Calcul des timestamps Départ et Arrivée...")
+
+# On nettoie les lignes vides
+df_small = df_small.dropna(subset=['DEPARTURE_TIME', 'ARRIVAL_TIME'])
+
+def format_time_str(t):
+    try:
+        s = str(int(t)).zfill(4)
+        if s == '2400': s = '0000'
+        if len(s) > 4: return None
+        return f"{s[:2]}:{s[2:]}:00"
+    except:
+        return None
+
+# Formattage des horaires de départs et d'arrivée
+df_small['dep_time_str'] = df_small['DEPARTURE_TIME'].apply(format_time_str)
+df_small['arr_time_str'] = df_small['ARRIVAL_TIME'].apply(format_time_str)
+df_small = df_small.dropna(subset=['dep_time_str', 'arr_time_str'])
+
+# Construction des date times de départ
+df_small['temp_date_str'] = (
+    df_small['YEAR'].astype(str) + '-' +
+    df_small['MONTH'].astype(str).str.zfill(2) + '-' +
+    df_small['DAY'].astype(str).str.zfill(2) + ' ' +
     df_small['dep_time_str']
 )
+df_small['departure_dt'] = pd.to_datetime(df_small['temp_date_str'], format='%Y-%m-%d %H:%M:%S')
 
-# 4. Finalisation du fichier Vols
-# On garde les colonnes propres pour l'export
-final_flights = df_small[['ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 'AIRLINE', 
-                          'full_date', 'DISTANCE', 'DEPARTURE_DELAY']]
-final_flights.columns = ['source', 'target', 'airline', 'timestamp', 'distance', 'delay']
+#Construction des horaires d'arrivée en incrémentant la date si le lendemain
+overnight = df_small['ARRIVAL_TIME'].astype(int) < df_small['DEPARTURE_TIME'].astype(int)
 
-# 5. Préparation des Aéroports (Noeuds)
-print("Préparation des aéroports...")
-airports = pd.read_csv('../source/airports.csv')
-# On ne garde que les aéroports présents dans nos vols filtrés
-valid_airports = set(final_flights['source']).union(set(final_flights['target']))
-final_airports = airports[airports['IATA_CODE'].isin(valid_airports)]
+# On construit le timestamp d'arrivée
+# Si c'est overnight, on ajoute 1 jour à la date de départ
+arrival_dates = df_small['departure_dt'].dt.date.copy()
+arrival_dates[overnight] = arrival_dates[overnight] + pd.Timedelta(days=1)
 
-# 6. Export en CSV
-print("Exportation...")
-final_flights.to_csv('../import/flights_projet.csv', index=False)
-final_airports.to_csv('../import/airports_projet.csv', index=False)
+df_small['arrival_ts'] = (
+    arrival_dates.astype(str) + 'T' +
+    df_small['arr_time_str']
+)
 
-print(f"Terminé ! Fichier vols : {len(final_flights)} lignes.")
+# On formate le timestamp de départ au format final ISO
+df_small['departure_ts'] = df_small['departure_dt'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+# 4. Finalisation
+final_flights = df_small[[
+    'ORIGIN_AIRPORT',
+    'DESTINATION_AIRPORT',
+    'AIRLINE',
+    'departure_ts',
+    'arrival_ts',
+    'DISTANCE',
+    'DEPARTURE_DELAY'
+]]
+
+final_flights.columns = ['source', 'target', 'airline', 'departure_ts', 'arrival_ts', 'distance', 'delay']
+
+print("Filtrage des aéroports...")
+airports = pd.read_csv(INPUT_AIRPORTS)
+
+# On ne garde que les aéroports qui apparaissent dans nos vols filtrés
+used_airports = set(final_flights['source']).union(set(final_flights['target']))
+final_airports = airports[airports['IATA_CODE'].isin(used_airports)]
+
+# 6. Exportation
+print("Écriture des fichiers CSV...")
+final_flights.to_csv(OUTPUT_FLIGHTS, index=False)
+final_airports.to_csv(OUTPUT_AIRPORTS, index=False)
+
+print("--- TERMINÉ ---")
+print(f"Fichier vols généré : {OUTPUT_FLIGHTS} (Contient ~{len(final_flights)} vols)")
+print(f"Fichier aéroports généré : {OUTPUT_AIRPORTS}")
