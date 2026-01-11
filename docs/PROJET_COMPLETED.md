@@ -231,13 +231,6 @@ Bonus :
 
 ## 🚀 Prochaines Étapes Détaillées
 
-### 1. Import Neo4j (1-2h)
-```bash
-# Copier les CSV dans Neo4j import/
-# Exécuter import_neo4j.cypher
-# Vérifier avec 00_validation.cypher
-```
-
 ### 2. Exécuter les Requêtes (2-3h)
 Pour chaque fichier de requête :
 - Copier-coller section par section
