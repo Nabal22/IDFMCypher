@@ -5,13 +5,6 @@
 // Analyse des algorithmes : BFS unidirectionnel vs bidirectionnel
 
 // ========================================
-// SETUP : Créer des index pour performance
-// ========================================
-
-// S'assurer que les index existent
-CREATE INDEX airport_iata IF NOT EXISTS FOR (a:Airport) ON (a.iata_code);
-
-// ========================================
 // CYPHER 5 : shortestPath()
 // ========================================
 

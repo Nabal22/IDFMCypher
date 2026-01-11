@@ -41,6 +41,7 @@ RETURN
   score AS degree
 ORDER BY degree DESC
 LIMIT 10;
+// Completed after 30 ms
 
 // 1b. Degree Centrality en Cypher 25 (facile !)
 CYPHER 25
@@ -55,6 +56,7 @@ RETURN
   count(DISTINCT out) + count(DISTINCT in) AS total_degree
 ORDER BY total_degree DESC
 LIMIT 10;
+// Completed after 43 154 ms
 
 // ========================================
 // ALGORITHME 2 : Triangle Count (Clustering Coefficient)
@@ -70,6 +72,7 @@ RETURN
   triangleCount
 ORDER BY triangleCount DESC
 LIMIT 10;
+// Completed after 35 ms
 
 // 2b. Triangle Count en Cypher 25
 CYPHER 25
@@ -82,6 +85,8 @@ RETURN
   triangles AS triangle_count
 ORDER BY triangle_count DESC
 LIMIT 10;
+
+// Completed after 13 minutes 14 secondes
 
 // ========================================
 // CLEANUP : Supprimer les projections (optionnel)
