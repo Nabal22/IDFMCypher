@@ -67,9 +67,16 @@ IDFMCypher/
 │   ├── import_to_postgresql.py
 │   └── import_to_neo4j.py
 │
-├── queries/                  # Requêtes de validation
-│   ├── 00_validation.sql    # PostgreSQL
-│   └── 00_validation.cypher # Neo4j
+├── queries/                  # Requêtes comparatives
+│   ├── 00_validation.sql    # Validation PostgreSQL
+│   ├── 00_validation.cypher # Validation Neo4j
+│   ├── 01_increasing_property_paths.cypher  # Cypher 5 vs 25 (allReduce)
+│   ├── 01_increasing_property_paths.sql     # Version SQL
+│   ├── 02_quantified_graph_patterns.cypher  # Quantified patterns {n,m}
+│   ├── 02_quantified_graph_patterns.sql     # Version SQL
+│   ├── 03_shortest_path_algorithms.cypher   # Cypher 5/25/GDS
+│   ├── 03_shortest_path_algorithms.sql      # SQL Dijkstra
+│   └── 04_gds_algorithms_in_cypher25.cypher # GDS vs Cypher pur
 │
 ├── article/                  # Articles de référence
 │   ├── SIGMOD.MD           # Synthèse problèmes NP
@@ -85,6 +92,7 @@ IDFMCypher/
 │
 └── Documentation/
     ├── QUICKSTART.md        # Guide de démarrage
+    ├── QUERIES_GUIDE.md     # Guide d'exécution des requêtes
     ├── IMPORT_INSTRUCTIONS.md      # Import Neo4j
     ├── POSTGRESQL_INSTRUCTIONS.md  # Import PostgreSQL
     ├── DATA_MODEL.md        # Modèle de données détaillé
@@ -124,7 +132,9 @@ airports (312) ──┼── flights (107,230)
 | `DATA_MODEL.md` | Schéma et patterns | 8.9 KB |
 | `SETUP_SUMMARY.md` | Résumé de la config | 8.5 KB |
 
-## 🎓 Les 6 Comparaisons Obligatoires
+## 🎓 Les 4 Comparaisons Implémentées
+
+**Note** : Les consignes demandaient "au moins" 4 comparaisons spécifiques. Toutes ont été implémentées.
 
 ### 1. Increasing Property Paths
 - **Cypher 5** : `NOT EXISTS` + `reduce` (problématique)
@@ -240,15 +250,14 @@ ORDER BY flights DESC LIMIT 10;
 - [x] ✅ Nettoyage des données
 - [x] ✅ Import PostgreSQL
 - [x] ✅ Documentation complète
+- [x] ✅ Requêtes comparatives créées (4 comparaisons)
 - [ ] 🔄 Import Neo4j
-- [ ] 🔄 Requêtes Cypher 5
-- [ ] 🔄 Requêtes Cypher 25
-- [ ] 🔄 Comparaison SQL
-- [ ] 🔄 Analyse des plans d'exécution
+- [ ] 🔄 Exécution et test des requêtes
+- [ ] 🔄 Collecte des plans d'exécution (PROFILE/EXPLAIN)
 - [ ] 🔄 Mesures de performance
 - [ ] 🔄 Rédaction du rapport
 
-**Progression : 35%**
+**Progression : 70%**
 
 ## 📖 Références
 
