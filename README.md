@@ -2,15 +2,15 @@
 
 Projet de Master en bases de données comparant les performances et l'expressivité des langages de requêtes Cypher 5, Cypher 25 et SQL sur un dataset de vols aériens.
 
-## 📊 Dataset
+## Dataset
 
 **US Flight Delays 2015** (source : Kaggle / US DOT)
-- 📅 Période : 1-7 janvier 2015 (première semaine)
-- ✈️ Vols : 107,230
-- 🏢 Aéroports : 312 (US)
-- 🛫 Compagnies : 14
+- Période : 1-7 janvier 2015 (première semaine)
+- Vols : 107,230
+- Aéroports : 312 (US)
+- Compagnies : 14
 
-## 🎯 Objectifs
+## Objectifs
 
 1. Comparer Cypher 5 vs Cypher 25 (problèmes NP-complets)
 2. Analyser les patterns problématiques identifiés dans SIGMOD
@@ -18,9 +18,9 @@ Projet de Master en bases de données comparant les performances et l'expressivi
 4. Étudier 6 cas d'usage obligatoires
 5. Documenter les plans d'exécution et optimisations
 
-## 🚀 Démarrage Rapide
+## Démarrage Rapide
 
-### 1. PostgreSQL (✅ Déjà fait)
+### 1. PostgreSQL (Déjà fait)
 
 ```bash
 # La base est déjà créée et peuplée
@@ -35,7 +35,7 @@ SELECT COUNT(*) FROM flights;  # 107230
 \i queries/00_validation.sql
 ```
 
-### 2. Neo4j (🔄 À faire)
+### 2. Neo4j (À faire)
 
 Voir `IMPORT_INSTRUCTIONS.md` ou `QUICKSTART.md`
 
@@ -48,7 +48,7 @@ Voir `IMPORT_INSTRUCTIONS.md` ou `QUICKSTART.md`
 python scripts/import_to_neo4j.py
 ```
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 IDFMCypher/
@@ -100,7 +100,7 @@ IDFMCypher/
     └── PROJET_COMPLETED.md  # État d'avancement
 ```
 
-## 🗄️ Modèle de Données
+## Modèle de Données
 
 ### PostgreSQL (Relationnel)
 
@@ -123,7 +123,7 @@ airports (312) ──┼── flights (107,230)
 (:Airline)
 ```
 
-## 📚 Documentation
+## Documentation
 
 Tous les fichiers de documentation sont dans le dossier **`docs/`**.
 
@@ -137,7 +137,7 @@ Tous les fichiers de documentation sont dans le dossier **`docs/`**.
 | `docs/SETUP_SUMMARY.md` | Résumé de la config | 8.5 KB |
 | `docs/PROJET_COMPLETED.md` | État d'avancement du projet | 11 KB |
 
-## 🎓 Les 4 Comparaisons Implémentées
+## Les 4 Comparaisons Implémentées
 
 **Note** : Les consignes demandaient "au moins" 4 comparaisons spécifiques. Toutes ont été implémentées.
 
@@ -182,7 +182,7 @@ Tous les fichiers de documentation sont dans le dossier **`docs/`**.
 
 **Outils** : `EXPLAIN ANALYZE` (PostgreSQL) vs `PROFILE` (Neo4j)
 
-## 🔬 Problèmes NP-Complets (SIGMOD)
+## Problèmes NP-Complets (SIGMOD)
 
 ### Le Problème
 Cypher 5 utilise `reduce()` dans les `WHERE` clauses, ce qui peut créer des requêtes NP-complètes :
@@ -201,7 +201,7 @@ Exemples concrets avec le réseau de vols :
 - Correspondances valides (temps minimum)
 - Optimisation de routes
 
-## 📊 Statistiques du Dataset
+## Statistiques du Dataset
 
 ### Top 5 Hubs
 1. **ATL** (Atlanta) : 13,296 vols
@@ -220,7 +220,7 @@ Exemples concrets avec le réseau de vols :
 - **Vol le plus en retard** : +900 minutes
 - **Vol le plus en avance** : -50 minutes
 
-## 🛠️ Commandes Utiles
+## Commandes Utiles
 
 ### PostgreSQL
 ```bash
@@ -250,21 +250,21 @@ ORDER BY flights DESC LIMIT 10;
 :source queries/00_validation.cypher
 ```
 
-## 🎯 Prochaines Étapes
+## Prochaines Étapes
 
-- [x] ✅ Nettoyage des données
-- [x] ✅ Import PostgreSQL
-- [x] ✅ Documentation complète
-- [x] ✅ Requêtes comparatives créées (4 comparaisons)
-- [ ] 🔄 Import Neo4j
-- [ ] 🔄 Exécution et test des requêtes
-- [ ] 🔄 Collecte des plans d'exécution (PROFILE/EXPLAIN)
-- [ ] 🔄 Mesures de performance
-- [ ] 🔄 Rédaction du rapport
+- [x] Nettoyage des données
+- [x] Import PostgreSQL
+- [x] Documentation complète
+- [x] Requêtes comparatives créées (4 comparaisons)
+- [ ] Import Neo4j
+- [ ] Exécution et test des requêtes
+- [ ] Collecte des plans d'exécution (PROFILE/EXPLAIN)
+- [ ] Mesures de performance
+- [ ] Rédaction du rapport
 
 **Progression : 70%**
 
-## 📖 Références
+## Références
 
 - **SIGMOD Article** : `article/SIGMOD.MD`
 - **Cypher 25 Guide** : `article/SOLVE_HARD_GRAPH_PROBLEMS_WITH_CYPHER_25.MD`
@@ -272,7 +272,7 @@ ORDER BY flights DESC LIMIT 10;
 - **Neo4j Docs** : https://neo4j.com/docs/
 - **PostgreSQL Docs** : https://www.postgresql.org/docs/
 
-## 👨‍💻 Auteur
+## Auteur
 
 Projet de Master en Bases de Données
 - **Dataset** : US Flight Delays 2015 (Kaggle)
