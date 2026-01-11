@@ -58,8 +58,7 @@ FlightCypher/
    - Cypher 5 shortestPath(), Cypher 25 SHORTEST
    - GDS (Dijkstra, A*, Yen) vs SQL recursive
 4. ✅ **GDS vs pure Cypher 25** - `queries/04_gds_algorithms_in_cypher25.cypher`
-   - Degree, Triangle Count (feasible)
-   - PageRank, Betweenness, Louvain (impossible)
+   - Degree, Triangle Count 
 
 ### Dataset Characteristics
 - **Source**: Kaggle "2015 Flight Delays and Cancellations" (US DOT)
