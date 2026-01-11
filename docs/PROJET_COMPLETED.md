@@ -36,7 +36,6 @@
 9. `queries/01_increasing_property_paths.cypher` - Cypher 5 vs 25 (allReduce)
 10. `queries/01_increasing_property_paths.sql` - Version SQL
 11. `queries/02_quantified_graph_patterns.cypher` - Quantified patterns {n,m}
-12. `queries/02_quantified_graph_patterns.sql` - Version SQL
 13. `queries/03_shortest_path_algorithms.cypher` - Cypher 5/25/GDS
 14. `queries/03_shortest_path_algorithms.sql` - Dijkstra SQL
 15. `queries/04_gds_algorithms_in_cypher25.cypher` - GDS vs Cypher pur
@@ -251,7 +250,6 @@ Pour chaque requête :
 ```bash
 psql -d flights_db -f queries/00_validation.sql
 psql -d flights_db -f queries/01_increasing_property_paths.sql
-psql -d flights_db -f queries/02_quantified_graph_patterns.sql
 psql -d flights_db -f queries/03_shortest_path_algorithms.sql
 ```
 

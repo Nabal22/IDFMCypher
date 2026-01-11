@@ -9,7 +9,7 @@ Ce guide explique comment exécuter les 4 comparaisons obligatoires de requêtes
 | # | Comparaison | Fichier Cypher | Fichier SQL | Taille |
 |---|-------------|----------------|-------------|--------|
 | 1 | Increasing Property Paths | `01_increasing_property_paths.cypher` | `01_increasing_property_paths.sql` | ~6 KB |
-| 2 | Quantified Graph Patterns | `02_quantified_graph_patterns.cypher` | `02_quantified_graph_patterns.sql` | ~5 KB |
+| 2 | Quantified Graph Patterns | `02_quantified_graph_patterns.cypher` |  | ~5 KB |
 | 3 | Shortest Path Algorithms | `03_shortest_path_algorithms.cypher` | `03_shortest_path_algorithms.sql` | ~7 KB |
 | 4 | GDS Algorithms in Cypher 25 | `04_gds_algorithms_in_cypher25.cypher` | N/A | ~8 KB |
 
