@@ -29,8 +29,8 @@ IDFMCypher/
 - **Data processed**: 107,230 flights from first week of January 2015
 - **Scope**: US domestic flights across 313 airports, 14 airlines
 - **PostgreSQL**: ✅ Database created and populated (flights_db)
-- **Neo4j**: 🔄 Ready for import
-- **Next**: Create and compare Cypher 5 vs Cypher 25 queries
+- **Neo4j**: ✅ Database created and populated (flights_graph)
+- **Next**: Test queries in both databases
 
 ## 3-Phase Workflow
 
