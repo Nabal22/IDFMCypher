@@ -5,17 +5,26 @@
 // normalement disponibles uniquement dans GDS
 // Comparaison : Cypher 25 pur vs GDS library
 
-// ========================================
-// SETUP : Créer la projection GDS pour comparaison
-// ========================================
-
-// Syntaxe corrigée pour GDS projection (compatible avec votre version)
+// Projection ORIENTÉE pour Degree Centrality
 CALL gds.graph.project(
-  'flights-network',
+  'flights-network-directed',
   'Airport',
   'FLIGHT',
   {
     relationshipProperties: ['distance', 'delay']
+  }
+);
+
+// Projection NON-ORIENTÉE pour Triangle Count
+// (triangleCount requiert UNDIRECTED)
+CALL gds.graph.project(
+  'flights-network-undirected',
+  'Airport',
+  {
+    FLIGHT: {
+      orientation: 'UNDIRECTED',
+      properties: ['distance', 'delay']
+    }
   }
 );
 
@@ -24,7 +33,7 @@ CALL gds.graph.project(
 // ========================================
 
 // 1a. Degree Centrality avec GDS
-CALL gds.degree.stream('flights-network')
+CALL gds.degree.stream('flights-network-directed')
 YIELD nodeId, score
 RETURN
   gds.util.asNode(nodeId).iata_code AS airport,
@@ -51,8 +60,8 @@ LIMIT 10;
 // ALGORITHME 2 : Triangle Count (Clustering Coefficient)
 // ========================================
 
-// 2a. Triangle Count avec GDS
-CALL gds.triangleCount.stream('flights-network')
+// 2a. Triangle Count avec GDS (utilise la projection UNDIRECTED)
+CALL gds.triangleCount.stream('flights-network-undirected')
 YIELD nodeId, triangleCount
 WHERE triangleCount > 0
 RETURN
@@ -75,68 +84,8 @@ ORDER BY triangle_count DESC
 LIMIT 10;
 
 // ========================================
-// COMPARAISON DE PERFORMANCE
+// CLEANUP : Supprimer les projections (optionnel)
 // ========================================
 
-// Degree Centrality - GDS avec PROFILE
-PROFILE
-CALL gds.degree.stream('flights-network')
-YIELD nodeId, score
-RETURN count(*);
-
-// Degree Centrality - Cypher 25 avec PROFILE
-CYPHER 25
-PROFILE
-MATCH (a:Airport)
-OPTIONAL MATCH (a)-[out:FLIGHT]->()
-OPTIONAL MATCH (a)<-[in:FLIGHT]-()
-RETURN count(DISTINCT a);
-
-// ========================================
-// ALGORITHME 3 (BONUS) : Betweenness approximatif
-// ========================================
-// Montre les limites de Cypher 25 pour les algos complexes
-
-// 3a. Betweenness avec GDS
-CALL gds.betweenness.stream('flights-network', {samplingSize: 50})
-YIELD nodeId, score
-RETURN gds.util.asNode(nodeId).iata_code AS airport, score
-ORDER BY score DESC
-LIMIT 10;
-
-// 3b. Betweenness approximatif en Cypher 25
-// Basé sur comptage de passages dans plus courts chemins échantillonnés
-CYPHER 25
-// Utiliser des aéroports moyens qui nécessitent souvent des connexions
-WITH ['BOS', 'MIA', 'SEA', 'SAN', 'PDX', 'SLC', 'MSP', 'DTW', 'PHL', 'CLT',
-      'MCO', 'FLL', 'TPA', 'BNA', 'OAK', 'SJC', 'SMF', 'RDU', 'AUS', 'SAT'] AS sample_airports
-
-// Pour chaque paire d'aéroports
-UNWIND sample_airports AS start_code
-UNWIND sample_airports AS end_code
-WITH start_code, end_code
-WHERE start_code < end_code
-
-MATCH (start:Airport {iata_code: start_code}), (end:Airport {iata_code: end_code})
-// Trouver tous les plus courts chemins (accepte 1-4 hops)
-MATCH path = allShortestPaths((start)-[:FLIGHT*1..4]->(end))
-// Filtrer pour garder seulement chemins avec au moins 2 hops
-WHERE length(path) >= 2
-
-// Compter passages par chaque nœud intermédiaire
-WITH path, start, end, nodes(path) AS all_nodes
-UNWIND all_nodes AS node
-WITH node, start, end
-WHERE node <> start AND node <> end  // Exclure les endpoints
-
-RETURN
-  node.iata_code AS airport,
-  node.city AS city,
-  count(*) AS betweenness_score
-ORDER BY betweenness_score DESC
-LIMIT 10;
-
-// ========================================
-// CLEANUP
-// ========================================
-CALL gds.graph.drop('flights-network');
+// CALL gds.graph.drop('flights-network-directed', false);
+// CALL gds.graph.drop('flights-network-undirected', false);
