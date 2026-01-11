@@ -90,13 +90,14 @@ IDFMCypher/
 ├── CONSIGNES.MD             # Consignes du projet
 ├── RAPPORT.md               # Rapport (à rédiger)
 │
-└── Documentation/
+└── docs/                    # Documentation
     ├── QUICKSTART.md        # Guide de démarrage
     ├── QUERIES_GUIDE.md     # Guide d'exécution des requêtes
     ├── IMPORT_INSTRUCTIONS.md      # Import Neo4j
     ├── POSTGRESQL_INSTRUCTIONS.md  # Import PostgreSQL
     ├── DATA_MODEL.md        # Modèle de données détaillé
-    └── SETUP_SUMMARY.md     # Résumé complet
+    ├── SETUP_SUMMARY.md     # Résumé complet
+    └── PROJET_COMPLETED.md  # État d'avancement
 ```
 
 ## 🗄️ Modèle de Données
@@ -124,13 +125,17 @@ airports (312) ──┼── flights (107,230)
 
 ## 📚 Documentation
 
+Tous les fichiers de documentation sont dans le dossier **`docs/`**.
+
 | Fichier | Description | Taille |
 |---------|-------------|--------|
-| `QUICKSTART.md` | Guide de démarrage rapide | 5.6 KB |
-| `POSTGRESQL_INSTRUCTIONS.md` | Guide PostgreSQL complet | 8.3 KB |
-| `IMPORT_INSTRUCTIONS.md` | Guide import Neo4j | 4.5 KB |
-| `DATA_MODEL.md` | Schéma et patterns | 8.9 KB |
-| `SETUP_SUMMARY.md` | Résumé de la config | 8.5 KB |
+| `docs/QUICKSTART.md` | Guide de démarrage rapide | 5.6 KB |
+| `docs/QUERIES_GUIDE.md` | Guide d'exécution des requêtes | 9.9 KB |
+| `docs/POSTGRESQL_INSTRUCTIONS.md` | Guide PostgreSQL complet | 8.3 KB |
+| `docs/IMPORT_INSTRUCTIONS.md` | Guide import Neo4j | 4.5 KB |
+| `docs/DATA_MODEL.md` | Schéma et patterns | 8.9 KB |
+| `docs/SETUP_SUMMARY.md` | Résumé de la config | 8.5 KB |
+| `docs/PROJET_COMPLETED.md` | État d'avancement du projet | 11 KB |
 
 ## 🎓 Les 4 Comparaisons Implémentées
 
