@@ -33,19 +33,6 @@ RETURN
   reduce(total = 0, r IN relationships(path) | total + r.delay) AS total_delay
 LIMIT 10;
 
-// Version 1b: Approche alternative Cypher 5 avec reduce dans WHERE
-// ATTENTION : C'est exactement le pattern problématique identifié dans SIGMOD !
-MATCH path = (start:Airport {iata_code: 'LAX'})
-  -[:FLIGHT*2..4]->(end:Airport {iata_code: 'JFK'})
-WHERE all(i IN range(0, size(relationships(path))-2) WHERE
-  relationships(path)[i].delay < relationships(path)[i+1].delay
-)
-RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  [r IN relationships(path) | r.delay] AS delays,
-  size(relationships(path)) AS hops
-LIMIT 10;
-
 // ========================================
 // CYPHER 25 : allReduce (OPTIMISÉ)
 // ========================================
@@ -72,82 +59,6 @@ RETURN
   reduce(total = 0.0, r IN relationships(path) | total + r.delay) AS total_delay
 LIMIT 10;
 
-// ========================================
-// VARIANTES : Autres propriétés croissantes
-// ========================================
-
-// 2a. Distance croissante (vols de plus en plus longs)
-CYPHER 25
-MATCH path = (start:Airport {iata_code: 'ATL'})
-  -[:FLIGHT*2..4]->(end:Airport {iata_code: 'SEA'})
-WHERE allReduce(
-  prev_dist = 0,
-  rel IN relationships(path) |
-    CASE WHEN rel.distance > prev_dist THEN rel.distance ELSE null END,
-  prev_dist IS NOT NULL
-)
-RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  [r IN relationships(path) | r.distance] AS distances,
-  size(relationships(path)) AS hops
-LIMIT 5;
-
-// 2b. Timestamp croissant (correspondances valides avec temps minimum)
-CYPHER 25
-MATCH path = (start:Airport {iata_code: 'LAX'})
-  -[:FLIGHT*2..3]->(end:Airport {iata_code: 'BOS'})
-WHERE allReduce(
-  prev_arrival = datetime('2015-01-01T00:00:00'),
-  rel IN relationships(path) |
-    CASE
-      WHEN rel.departure_ts >= prev_arrival + duration({minutes: 30})
-      THEN rel.arrival_ts
-      ELSE null
-    END,
-  prev_arrival IS NOT NULL
-)
-RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  [r IN relationships(path) | {
-    depart: toString(r.departure_ts),
-    arrive: toString(r.arrival_ts)
-  }] AS times,
-  size(relationships(path)) AS hops
-LIMIT 5;
-
-// ========================================
-// ANALYSE DE PERFORMANCE
-// ========================================
-
-// Mesurer le temps d'exécution avec PROFILE
-// ATTENTION : Sur de grands graphes, la version Cypher 5 peut timeout !
-
-// Test sur sous-graphe réduit (top 10 hubs seulement)
-// Pour éviter le timeout mentionné dans SIGMOD
-
-PROFILE
-MATCH path = (start:Airport)
-  -[:FLIGHT*2..3]->(end:Airport)
-WHERE start.iata_code IN ['LAX', 'ATL', 'ORD', 'DEN', 'DFW', 'JFK', 'SFO', 'LAS', 'PHX', 'IAH']
-  AND end.iata_code IN ['LAX', 'ATL', 'ORD', 'DEN', 'DFW', 'JFK', 'SFO', 'LAS', 'PHX', 'IAH']
-  AND all(i IN range(0, size(relationships(path))-2) WHERE
-    relationships(path)[i].delay < relationships(path)[i+1].delay
-  )
-RETURN count(path) AS cypher5_count;
-
-CYPHER 25
-PROFILE
-MATCH path = (start:Airport)
-  -[:FLIGHT*2..3]->(end:Airport)
-WHERE start.iata_code IN ['LAX', 'ATL', 'ORD', 'DEN', 'DFW', 'JFK', 'SFO', 'LAS', 'PHX', 'IAH']
-  AND end.iata_code IN ['LAX', 'ATL', 'ORD', 'DEN', 'DFW', 'JFK', 'SFO', 'LAS', 'PHX', 'IAH']
-  AND allReduce(
-    prev_delay = -999999.0,
-    rel IN relationships(path) |
-      CASE WHEN rel.delay > prev_delay THEN rel.delay ELSE null END,
-    prev_delay IS NOT NULL
-  )
-RETURN count(path) AS cypher25_count;
 
 // ========================================
 // POINTS CLÉS POUR LE RAPPORT

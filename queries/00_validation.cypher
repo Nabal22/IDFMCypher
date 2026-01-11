@@ -62,20 +62,6 @@ RETURN
 ORDER BY arrivals DESC
 LIMIT 10;
 
-// Top 10 des hubs (départs + arrivées)
-MATCH (a:Airport)
-OPTIONAL MATCH (a)-[out:FLIGHT]->()
-OPTIONAL MATCH (a)<-[in:FLIGHT]-()
-RETURN
-  a.iata_code as airport,
-  a.city as city,
-  a.state as state,
-  count(DISTINCT out) as departures,
-  count(DISTINCT in) as arrivals,
-  count(DISTINCT out) + count(DISTINCT in) as total_flights
-ORDER BY total_flights DESC
-LIMIT 10;
-
 // Distribution des compagnies
 MATCH ()-[f:FLIGHT]->()
 RETURN
