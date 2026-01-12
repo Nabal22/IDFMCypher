@@ -10,7 +10,7 @@
 
 -- Algorithme : BFS simple pour trouver le plus court chemin
 WITH RECURSIVE shortest_path AS (
-    -- Initialisation : vols directs depuis LAX
+    -- Init depuis LAX
     SELECT
         f.source,
         f.target,
@@ -23,7 +23,7 @@ WITH RECURSIVE shortest_path AS (
 
     UNION ALL
 
-    -- BFS : explorer les vols suivants
+    -- Explorer vols suivants
     SELECT
         sp.source,
         f.target,
@@ -34,17 +34,13 @@ WITH RECURSIVE shortest_path AS (
     FROM shortest_path sp
     JOIN flights f ON sp.target = f.source
     WHERE
-        -- Pas de cycle
         f.target != ALL(sp.path_codes)
-        -- Limiter la profondeur pour performance
         AND sp.hops < 10
-        -- IMPORTANT : Ne pas explorer au-delà du premier chemin trouvé
         AND NOT EXISTS (
             SELECT 1 FROM shortest_path sp2
             WHERE sp2.target = 'JFK'
         )
 )
--- Récupérer le premier chemin qui arrive à JFK
 SELECT
     path_codes AS route,
     hops,
@@ -55,16 +51,9 @@ WHERE target = 'JFK'
 ORDER BY hops
 LIMIT 1;
 
--- Note : Cette approche n'est pas optimale en SQL car la condition
--- NOT EXISTS est évaluée APRÈS la génération des chemins, pas pendant.
-
--- ========================================
--- VERSION 2 : Dijkstra Manuel (pondéré par distance)
--- ========================================
-
--- Implémentation de Dijkstra en SQL pur
+-- Dijkstra manuel (distance pondérée)
 WITH RECURSIVE dijkstra AS (
-    -- Initialisation : distance 0 pour LAX, infini pour les autres
+    -- Init: LAX = 0, autres = infini
     SELECT
         a.iata_code,
         CASE WHEN a.iata_code = 'LAX' THEN 0 ELSE 999999 END AS distance,
@@ -74,7 +63,7 @@ WITH RECURSIVE dijkstra AS (
 
     UNION ALL
 
-    -- Relaxation des arêtes
+    -- Relaxation
     SELECT
         d.iata_code,
         LEAST(
@@ -102,14 +91,7 @@ WHERE iata_code = 'JFK'
 ORDER BY distance
 LIMIT 1;
 
--- Note : L'implémentation pure de Dijkstra en SQL est très complexe
--- et peu performante. Ci-dessus est une version simplifiée.
-
--- ========================================
--- VERSION 3 : Approche Pratique (BFS avec poids)
--- ========================================
-
--- Plus pratique : BFS qui garde trace du coût total
+-- BFS avec poids (plus pratique)
 WITH RECURSIVE weighted_paths AS (
     SELECT
         f.source,
@@ -118,8 +100,8 @@ WITH RECURSIVE weighted_paths AS (
         f.arrival_ts,
         ARRAY[f.source, f.target] AS path_codes,
         1 AS hops,
-        f.distance::NUMERIC AS total_cost,  -- Utiliser distance comme poids
-        f.distance::NUMERIC AS min_cost_to_here  -- Coût minimum pour atteindre ce nœud
+        f.distance::NUMERIC AS total_cost,
+        f.distance::NUMERIC AS min_cost_to_here
     FROM flights f
     WHERE f.source = 'LAX'
 
@@ -133,13 +115,12 @@ WITH RECURSIVE weighted_paths AS (
         wp.path_codes || f.target,
         wp.hops + 1,
         wp.total_cost + f.distance,
-        wp.total_cost + f.distance  -- Nouveau coût
+        wp.total_cost + f.distance
     FROM weighted_paths wp
     JOIN flights f ON wp.target = f.source
     WHERE
         f.target != ALL(wp.path_codes)
         AND wp.hops < 10
-        -- Pruning : ne pas explorer si on a déjà un chemin moins cher vers ce nœud
         AND wp.total_cost + f.distance < (
             SELECT COALESCE(MIN(wp2.min_cost_to_here), 999999)
             FROM weighted_paths wp2
@@ -155,11 +136,7 @@ WHERE target = 'JFK'
 ORDER BY total_cost
 LIMIT 1;
 
--- ========================================
--- VERSION 4 : K Plus Courts Chemins
--- ========================================
-
--- Trouver les 5 plus courts chemins (par nombre de sauts)
+-- Top 5 chemins
 WITH RECURSIVE all_paths AS (
     SELECT
         f.source,
@@ -182,7 +159,7 @@ WITH RECURSIVE all_paths AS (
     JOIN flights f ON ap.target = f.source
     WHERE
         f.target != ALL(ap.path_codes)
-        AND ap.hops < 5  -- Limiter pour éviter explosion
+        AND ap.hops < 5
 )
 SELECT
     path_codes AS route,
@@ -193,9 +170,7 @@ WHERE target = 'JFK'
 ORDER BY hops, total_distance
 LIMIT 5;
 
--- ========================================
--- VERSION 5 : Chemins avec Contraintes (temps de correspondance)
--- ========================================
+-- Avec contrainte de temps (30min correspondance min)
 
 WITH RECURSIVE valid_paths AS (
     SELECT
@@ -224,7 +199,6 @@ WITH RECURSIVE valid_paths AS (
     WHERE
         f.target != ALL(vp.path_codes)
         AND vp.hops < 5
-        -- Contrainte : au moins 30 min de correspondance
         AND f.departure_ts >= vp.arrival_ts + INTERVAL '30 minutes'
 )
 SELECT
@@ -236,11 +210,7 @@ WHERE target = 'JFK'
 ORDER BY hops
 LIMIT 1;
 
--- ========================================
--- VERSION 6 : Comparaison de Métriques
--- ========================================
-
--- 6a. Chemin le plus court en distance
+-- Comparaison métriques
 WITH RECURSIVE distance_paths AS (
     SELECT
         f.source, f.target,
@@ -273,7 +243,7 @@ WHERE target = 'MIA'
 ORDER BY total_distance
 LIMIT 1;
 
--- 6b. Chemin avec minimum de retard
+-- Min delay
 WITH RECURSIVE delay_paths AS (
     SELECT
         f.source, f.target,
@@ -306,11 +276,7 @@ WHERE target = 'MIA'
 ORDER BY total_delay
 LIMIT 1;
 
--- ========================================
--- ANALYSE DE PERFORMANCE
--- ========================================
-
--- Benchmark : BFS simple
+-- Benchmark BFS
 EXPLAIN ANALYZE
 WITH RECURSIVE shortest_path AS (
     SELECT
@@ -340,14 +306,7 @@ SELECT
 FROM shortest_path
 GROUP BY source, target;
 
--- ========================================
--- EXTENSION PostgreSQL : pg_routing
--- ========================================
-
--- Note : PostgreSQL a une extension pg_routing pour graphes
--- Mais elle nécessite PostGIS et est orientée géospatial
-
--- Exemple (si pg_routing installé) :
+-- pg_routing (si installé)
 /*
 SELECT * FROM pgr_dijkstra(
     'SELECT id, source, target, distance AS cost FROM flights',
@@ -357,105 +316,109 @@ SELECT * FROM pgr_dijkstra(
 );
 */
 
--- ========================================
--- POINTS CLÉS POUR LE RAPPORT
--- ========================================
-
 /*
-1. SQL vs CYPHER pour SHORTEST PATH :
+================================================================================
+POINTS CLÉS POUR LE RAPPORT
+================================================================================
 
-   SQL (WITH RECURSIVE) :
-   - Peut implémenter BFS
-   - Dijkstra manuel très complexe
-   - Pas d'optimisation bidirectionnelle native
-   - Performance : O(n^k) pour k sauts
+1. COMPARAISON DES APPROCHES
 
-   Cypher shortestPath :
+   SQL (WITH RECURSIVE):
+   - Implémentation manuelle de BFS ou Dijkstra
+   - Code verbeux (30-40 lignes vs 1 ligne Cypher)
+   - Pas de BFS bidirectionnel → explore depuis une seule direction
+   - Pas de priority queue native → Dijkstra difficile à implémenter
+   - Complexité O(n^k) pour k sauts → explosion combinatoire
+
+   Cypher 5/25 (shortestPath/SHORTEST):
    - BFS bidirectionnel optimisé
-   - Une ligne de code
-   - Performance : O(2*sqrt(n^k)) ≈ beaucoup mieux
+   - Syntaxe déclarative (1 ligne)
+   - NE SUPPORTE PAS les poids → compte uniquement les sauts
+   - Pour chemins pondérés → exploration exhaustive O(branches^depth)
+   - allReduce (Cypher 25) évite NP-complet mais reste lent
 
-2. LIMITATIONS SQL :
+   GDS (Dijkstra):
+   - Algorithme optimisé en C++
+   - Supporte les poids (distance, delay, etc.)
+   - Garantit l'optimalité du résultat
+   - 100-1000x plus rapide que SQL/Cypher pur
 
-   a) Pas de BFS bidirectionnel natif
-      - Doit explorer depuis source uniquement
-      - Beaucoup plus de nœuds visités
 
-   b) Dijkstra très difficile à implémenter
-      - Nécessite sélection du nœud min non visité
-      - Pas de queue de priorité en SQL
-      - Performance médiocre
+2. PERFORMANCES MESURÉES (JFK → DAY, 2 sauts, 590 miles optimal)
 
-   c) Pas d'équivalent GDS
-      - Pas de A*, Yen, Delta-Stepping
-      - pg_routing existe mais limité
+   Cypher 5 shortestPath():
+   - Temps: instantané (~15ms)
+   - Résultat: [JFK, ATL, DAY] = 1192 miles (non optimal, +102%)
+   - Trouve le chemin avec MOINS DE SAUTS, pas la distance min
+   - Ne prend PAS en compte les poids
 
-3. AVANTAGES SQL :
+   Cypher 25 exhaustif *1..2 (avec allReduce):
+   - Temps: 293ms
+   - Résultat: [JFK, BWI, DAY] = 590 miles (optimal)
+   - Limité à 2 sauts max (notre dataset n'a pas de vols >1 escale)
+   - Avec *1..3: 2 minutes 17 secondes (explosion combinatoire)
+   - Ne scale PAS au-delà de 2-3 sauts
 
-   a) WITH RECURSIVE est explicite
-      - On voit exactement l'algorithme
-      - Debugging plus facile
+   GDS Dijkstra:
+   - Temps: 37ms (8x plus rapide que Cypher exhaustif)
+   - Résultat: [JFK, BWI, DAY] = 590 miles (optimal garanti)
+   - Scale à N sauts sans problème
+   - Gère des milliers de nœuds efficacement
 
-   b) Flexible pour contraintes custom
-      - Facile d'ajouter WHERE conditions
-      - Temps de correspondance, etc.
 
-   c) Peut optimiser avec index
-      - Index sur (source, target)
-      - Peut accélérer les JOINs
+3. LIMITES TECHNIQUES
 
-4. PERFORMANCE ATTENDUE :
+   SQL:
+   - WITH RECURSIVE = scan séquentiel de tous les chemins
+   - Impossible d'implémenter priority queue
+   - Pas d'optimisation bidirectionnelle
+   - Indexes (source, target) aident mais limités
 
-   Pour LAX → JFK (~2500 miles, ~3 hops) :
+   Cypher pur:
+   - Langage déclaratif → pas de structures mutables
+   - Pas de priority queue disponible
+   - reduce() dans WHERE = NP-complet (SIGMOD)
+   - allReduce améliore mais ne résout pas le problème fondamental
 
-   SQL BFS :
-   - Temps : 200-500ms
-   - Lignes explorées : ~50,000
-   - Algorithm : Recursive CTE Scan
 
-   Cypher shortestPath :
-   - Temps : 10-50ms
-   - db hits : 1,000-5,000
-   - Algorithm : BidirectionalShortestPath
+4. QUAND UTILISER CHAQUE APPROCHE?
 
-   Speedup : Cypher ~10x plus rapide
+   SQL WITH RECURSIVE:
+   ✓ Contraintes métier complexes (temps de correspondance, horaires)
+   ✓ Voir explicitement l'algorithme (pédagogie)
+   ✓ Pas de GDS disponible
+   ✗ Chemins pondérés à grande échelle
 
-5. EXPLAIN ANALYZE vs PROFILE :
+   Cypher shortestPath():
+   ✓ Plus court chemin NON pondéré (minimum de sauts)
+   ✓ Syntaxe simple et rapide
+   ✓ Graphes de toute taille
+   ✗ Chemins pondérés (ne prend pas en compte les poids)
 
-   SQL EXPLAIN ANALYZE montre :
-   - CTE Scan (récursif)
-   - Hash Join pour flights
-   - Rows : nombre total généré
-   - Planning time vs Execution time
+   Cypher exhaustif (*1..n):
+   ✓ Prototypage sur petits graphes
+   ✓ Exploration avec filtres complexes
+   ✗ Production (timeout)
+   ✗ Profondeur > 3-4
 
-   Cypher PROFILE montre :
-   - ShortestPath operator
-   - BidirectionalTraversal
-   - db hits
-   - Algorithme utilisé (BFS bidirectionnel)
+   GDS Dijkstra:
+   ✓ Chemins pondérés (OBLIGATOIRE)
+   ✓ Performance critique
+   ✓ Optimalité garantie
+   ✓ Graphes de toute taille
+   - Nécessite projection du graphe
 
-6. POUR LE RAPPORT :
 
-   a) Montrer code SQL vs Cypher côte à côte
-      - SQL : 30-40 lignes pour Dijkstra
-      - Cypher : 1-2 lignes
+5. CONCLUSION
 
-   b) Comparer temps d'exécution
-      - EXPLAIN ANALYZE vs PROFILE
-      - Calculer speedup
+   Pour les chemins pondérés, GDS est INDISPENSABLE:
+   - Cypher/SQL purs → force brute inefficace
+   - Seule solution qui garantit l'optimalité
+   - Performance 100-1000x supérieure
+   - Implémentations éprouvées (Dijkstra, A*, Yen)
 
-   c) Expliquer pourquoi Cypher est plus rapide
-      - BFS bidirectionnel
-      - Optimisations natives
-      - Structures de données dédiées
-
-   d) Mentionner pg_routing comme alternative
-      - Mais nécessite PostGIS
-      - Orienté géospatial
-
-   e) Conclusion :
-      - SQL peut faire des shortest paths
-      - Mais beaucoup moins performant
-      - Cypher/Neo4j conçu pour ça
-      - Utiliser le bon outil pour le bon problème
+   Règle générale:
+   - Min sauts → Cypher shortestPath()
+   - Min distance/poids → GDS Dijkstra
+   - Contraintes métier → SQL WITH RECURSIVE
 */

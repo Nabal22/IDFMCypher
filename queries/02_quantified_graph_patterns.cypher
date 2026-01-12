@@ -61,42 +61,52 @@ RETURN
   size(relationships(path)) AS hops
 ORDER BY hops;
 
-// ========================================
-// POINTS CLÉS POUR LE RAPPORT
-// ========================================
+================================================================================
+RÉSUMÉ POUR LE RAPPORT
+================================================================================
 
-/*
-ANALYSE : QUANTIFIED GRAPH PATTERNS
+QUANTIFIED PATTERNS : NOUVELLE SYNTAXE CYPHER 25
 
-1. SYNTAXE ET EXPRESSIVITÉ
-   Cypher 5:  Doit énumérer explicitement chaque pattern
-              → UNION pour combiner 2 hops + 3 hops
-              → Code dupliqué, verbeux, difficile à maintenir
+Avant (Cypher 5):
+- Pattern matching explicite pour chaque saut
+- Code verbeux (7 lignes pour 3 hops)
+- Duplication nécessaire pour supporter des ranges (2 OU 3 hops → UNION)
+- WHERE complexe pour éviter les cycles (6 comparaisons pour 3 hops)
 
-   Cypher 25: Quantification déclarative {n,m}
-              → (pattern){2,3} exprime directement "2 ou 3 répétitions"
-              → Code concis, DRY (Don't Repeat Yourself)
+Après (Cypher 25):
+- Quantificateurs concis: {3} = exactement 3, {2,3} = entre 2 et 3
+- Une seule ligne: (()-->(:Airport)){2,3}
+- allReduce() pour détecter les cycles simplement
+- Pas besoin de UNION pour gérer les ranges
 
-2. CAS D'USAGE DIFFICILES SANS QUANTIFIED PATTERNS
-   - Range variable (2 à 10 hops) : impossible à écrire proprement en Cypher 5
-   - Patterns complexes répétés : explosion de code
-   - Modification du range : nécessite réécrire tous les UNIONs en Cypher 5
+RÉDUCTION DU CODE
 
-3. COMPARAISON AVEC SQL
-   SQL WITH RECURSIVE:
-   - Nécessite filtrage POST-TRAVERSÉE par hops BETWEEN n AND m
-   - Doit fixer une limite supérieure arbitraire (AND fp.hops < 10)
-   - Génère TOUS les chemins jusqu'à la limite, puis filtre
+| Cas d'usage              | Cypher 5      | Cypher 25    | Réduction |
+|--------------------------|---------------|--------------|-----------|
+| Exactement N hops        | 7 lignes      | 1 ligne      | 86%       |
+| Range de hops (2-3)      | 2 requêtes    | 1 requête    | 50%       |
+| Détection cycles         | 6 WHERE <>    | allReduce()  | Simplifié |
 
-   Cypher 25 {n,m}:
-   - Borne inférieure ET supérieure INTÉGRÉES dans le pattern
-   - Pas de chemins générés en dehors de la range
-   - Plus efficace (pruning automatique)
+BÉNÉFICES
 
-4. CONCLUSION
-   Quantified patterns = sucre syntaxique ESSENTIEL
-   - Simplifie l'écriture (5 lignes vs 20+ lignes en Cypher 5)
-   - Améliore la lisibilité et maintenabilité
-   - Performances meilleures (pas de UNION coûteux)
-   - Fonctionnalité manquante cruciale en Cypher 5
-*/
+Lisibilité:
+- Intent clair: {2,3} = "2 ou 3 sauts"
+- Moins de code boilerplate
+- Pas de variables intermédiaires (hub1, hub2, etc.)
+
+Maintenabilité:
+- Modifier N hops: changer un chiffre vs réécrire le pattern
+- Ajouter range: changer {3} en {2,3} vs dupliquer la requête
+- Moins d'erreurs possibles (oubli de WHERE <> dans Cypher 5)
+
+Performance:
+- Même complexité algorithmique
+- Moteur Neo4j optimise les quantified patterns nativement
+- Évite UNION (moins de passes sur les données)
+
+CONCLUSION
+
+Quantified patterns = sucre syntaxique puissant
+→ Réduit code de 50-86% pour patterns répétitifs
+→ Essentiel pour requêtes avec profondeur variable
+→ Standard pour path queries modernes

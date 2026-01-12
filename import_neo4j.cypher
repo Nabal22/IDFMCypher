@@ -1,23 +1,14 @@
-// ========================================
-// Neo4j Database Import Script
-// Dataset: US Flight Delays 2015 (Jan 1-7)
-// ========================================
-
-// Clean existing data
+// Nettoyage base
 MATCH (n) DETACH DELETE n;
 
-// ========================================
-// 1. Import Airlines
-// ========================================
+// Import Airlines
 LOAD CSV WITH HEADERS FROM 'file:///airlines.csv' AS row
 CREATE (:Airline {
   iata_code: row.IATA_CODE,
   name: row.AIRLINE
 });
 
-// ========================================
-// 2. Import Airports
-// ========================================
+// Import Airports
 LOAD CSV WITH HEADERS FROM 'file:///airports_projet.csv' AS row
 CREATE (:Airport {
   iata_code: row.IATA_CODE,
@@ -29,30 +20,21 @@ CREATE (:Airport {
   longitude: toFloat(row.LONGITUDE)
 });
 
-// ========================================
-// 3. Create Constraints and Indexes
-// ========================================
-
-// Constraints (ensure uniqueness)
+// Contraintes d'unicité
 CREATE CONSTRAINT airport_iata_unique IF NOT EXISTS
 FOR (a:Airport) REQUIRE a.iata_code IS UNIQUE;
 
 CREATE CONSTRAINT airline_iata_unique IF NOT EXISTS
 FOR (al:Airline) REQUIRE al.iata_code IS UNIQUE;
 
-// Indexes for performance
+// Index de recherche
 CREATE INDEX airport_city IF NOT EXISTS
 FOR (a:Airport) ON (a.city);
 
 CREATE INDEX airport_state IF NOT EXISTS
 FOR (a:Airport) ON (a.state);
 
-// ========================================
-// 4. Import Flights (as relationships)
-// ========================================
-
-// Load flights in batches for better performance
-// Using CALL { ... } IN TRANSACTIONS for large dataset
+// Import Flights (par batch de 1000)
 LOAD CSV WITH HEADERS FROM 'file:///flights_projet.csv' AS row
 CALL {
   WITH row
@@ -69,11 +51,7 @@ CALL {
   }]->(target)
 } IN TRANSACTIONS OF 1000 ROWS;
 
-// ========================================
-// 5. Create additional indexes on relationships
-// ========================================
-
-// Index on flight properties for query performance
+// Index sur les relations FLIGHT
 CREATE INDEX flight_departure_time IF NOT EXISTS
 FOR ()-[f:FLIGHT]-() ON (f.departure_ts);
 
@@ -86,24 +64,20 @@ FOR ()-[f:FLIGHT]-() ON (f.delay);
 CREATE INDEX flight_distance IF NOT EXISTS
 FOR ()-[f:FLIGHT]-() ON (f.distance);
 
-// ========================================
-// 6. Verification Queries
-// ========================================
-
-// Count nodes
+// Vérification - comptage noeuds
 MATCH (a:Airport) RETURN 'Airports' as type, count(a) as count
 UNION
 MATCH (al:Airline) RETURN 'Airlines' as type, count(al) as count;
 
-// Count relationships
+// Comptage relations
 MATCH ()-[f:FLIGHT]->() RETURN 'Flights' as type, count(f) as count;
 
-// Sample data
+// Échantillon
 MATCH (source:Airport)-[f:FLIGHT]->(target:Airport)
 RETURN source.iata_code, target.iata_code, f.airline, f.departure_ts, f.distance, f.delay
 LIMIT 10;
 
-// Hub airports (top 10 by outgoing flights)
+// Top 10 pour tester
 MATCH (a:Airport)-[f:FLIGHT]->()
 RETURN a.iata_code, a.city, count(f) as outgoing_flights
 ORDER BY outgoing_flights DESC
