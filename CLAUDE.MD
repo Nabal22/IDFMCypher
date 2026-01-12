@@ -130,6 +130,26 @@ Must include:
 7. Performance analysis
 8. Explanations (reference SIGMOD lessons)
 
+Info you sould know :
+Initially we project to chose IDFM dataset but finally we chose the Kaggle Flight Delays 2015 dataset because the IDFM dataset was not well suited for graph modeling.
+
+IDFM GTFS dataset structure (not used):
+agency.csv
+    ↓
+routes.csv (lignes exploitées par les agences)
+    ↓
+trips.csv (trajets sur ces lignes)
+    ↓
+stop_times.csv (horaires détaillés pour chaque trajet)
+    ↓
+stops.csv (arrêts desservis)
+    ↓
+transfers.csv (correspondances entre arrêts)
+    ↓
+pathways.csv (chemins au sein des stations)
+
+calendar.csv + calendar_dates.csv → Déterminent quand les trajets fonctionnent
+
 ## Technology Stack
 - **PostgreSQL**: Relational database
 - **Neo4j**: Graph database (Cypher 5 & 25)

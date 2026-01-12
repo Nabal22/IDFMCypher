@@ -2,7 +2,7 @@
 // REQUÊTE 1 : INCREASING PROPERTY PATHS
 // ========================================
 // Comparaison Cypher 5 vs Cypher 25
-// Cas d'usage : Trouver des chemins de vols où le retard (delay) augmente à chaque escale
+// Exemple : Trouver des chemins de vols où le retard (delay) augmente à chaque escale
 //
 // Problématique SIGMOD : reduce() dans WHERE clause = NP-complet
 // Solution Cypher 25 : allReduce() optimisé
@@ -10,11 +10,7 @@
 // ========================================
 // CYPHER 5 : NOT EXISTS (PROBLÉMATIQUE)
 // ========================================
-// Cette version utilise NOT EXISTS avec reduce pour vérifier que
-// les retards sont croissants.
 
-// Version 1a: NOT EXISTS avec reduce
-// Trouve les chemins LAX → JFK avec retards croissants
 PROFILE
 CYPHER 5
 MATCH path = (start:Airport {iata_code: 'LAX'})
@@ -36,8 +32,7 @@ LIMIT 50;
 // ========================================
 // CYPHER 25 : allReduce (OPTIMISÉ)
 // ========================================
-// allReduce permet de vérifier la propriété croissante pendant
-// la traversée du graphe.
+// allReduce permet de vérifier la propriété croissante pendant la traversée du graphe.
 
 PROFILE
 CYPHER 25
@@ -164,7 +159,6 @@ Batch size 128
 +----------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
 
 Total database accesses: 39904, total allocated memory: 3969016
-
 
 // ========================================
 // POINTS CLÉS POUR LE RAPPORT

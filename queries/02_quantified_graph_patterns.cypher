@@ -33,7 +33,6 @@ WHERE start <> hub1 AND start <> hub2 AND start <> end
 WITH DISTINCT [n IN nodes(path) | n.iata_code] AS route
 RETURN route
 LIMIT 10;
-
 // si on ne met pas le LIMIT 10 la requête CYPHER 5 sera anormalement longue
 
 // ========================================
