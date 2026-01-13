@@ -12,9 +12,7 @@ header-includes:
 
 ## Introduction
 
-Ce projet compare les performances et l'expressivité de Cypher 5 et Cypher 25 sur un dataset réel de vols. L'objectif est de vérifier empiriquement les problèmes de complexité identifiés dans la littérature académique (notamment l'article SIGMOD sur les dangers du list processing) et de tester les solutions proposées par la version 25 du langage.
-
-Le dataset choisi représente les vols américains de la première semaine de janvier 2015 : 107 230 vols entre 313 aéroports, opérés par 14 compagnies. Cette structure de graphe est idéale pour tester des algorithmes de chemins, avec des propriétés numériques sur les arêtes (distance, retard) permettant des requêtes complexes.
+Ce projet compare les performances et l'expressivité de Cypher 5 et Cypher 25 sur un dataset réel de vols. Le dataset choisi représente les vols américains de la première semaine de janvier 2015 : 107 230 vols entre 313 aéroports, opérés par 14 compagnies.
 
 ## Choix et Modélisation des Données
 
@@ -22,22 +20,21 @@ Le dataset choisi représente les vols américains de la première semaine de ja
 
 #### Choix initial : Dataset IDFM (abandonné)
 
-Nous avions initialement envisagé d'utiliser les données GTFS (General Transit Feed Specification) de l'IDFM (Île-de-France Mobilités) représentant le réseau de transports en commun francilien. Ce dataset présentait plusieurs fichiers interconnectés :
+Nous avions initialement envisagé d'utiliser les données GTFS d'IDFM représentant le réseau de transports en commun francilien. Ce dataset présentait plusieurs fichiers interconnectés :
 
-- `agency.txt` : Opérateurs de transport
-- `routes.txt` : Lignes de transport
-- `trips.txt` : Trajets planifiés
-- `stop_times.txt` : Horaires d'arrêt pour chaque trajet
-- `stops.txt` : Stations et arrêts
-- `transfers.txt` : Correspondances entre arrêts
-- `pathways.txt` : Cheminements piétons dans les stations
+- `agency.csv` : Agences de transport
+- `routes.csv` : Lignes de transport
+- `trips.csv` : Trajets
+- `stop_times.csv` : Horaires d'arrêt pour chaque trajet
+- `stops.csv` : Stations et arrêts
+- `transfers.csv` : Correspondances entre arrêts
+- `pathways.csv` : Chemin piétons dans les stations
 
 **Problème identifié** : Cette structure est orientée relationnelle. La modélisation en graphe était trop complexe :
 
 - Les "nœuds" étaient des stations, mais les relations entre elles ne sont pas directes
 - Il faut passer par 4 tables intermédiaires (route -> trip -> stop_time) pour relier deux stations
 - Les propriétés intéressantes (horaires, fréquences) sont dispersées dans plusieurs tables
-- Le graphe résultant aurait été un "graphe forcé" sans avantage réel
 
 C'est d'ailleurs un cas où PostgreSQL est mieux adapté que Neo4j : les données GTFS ont été conçues pour des requêtes relationnelles (jointures, agrégations temporelles).
 
@@ -45,16 +42,14 @@ C'est d'ailleurs un cas où PostgreSQL est mieux adapté que Neo4j : les donnée
 
 Dataset Kaggle "2015 Flight Delays and Cancellations" (US Department of Transportation) :
 
-- **Source** : 5,8 millions de vols sur l'année 2015
-- **Échantillon retenu** : Première semaine de janvier (1-7 janvier)
-- **Raison** : Volume gérable tout en conservant une densité suffisante pour observer des phénomènes intéressants
+- Source : 5,8 millions de vols sur l'année 2015
+- Échantillon retenu : Première semaine de janvier
+- Raison : Volume raisonnable tout en conservant un nombre de données suffisantes pour avoir des requêtes intéressantes
 
-**Avantages pour le projet** :
+##### Visualisation du dataset
 
-- Structure naturellement graphe : Aéroports = nœuds, Vols = arêtes
-- Propriétés numériques sur les arêtes (distance, retard) adaptées aux algorithmes de chemins
-- Multi-hop paths représentent des itinéraires réels avec correspondances
-- Parfait pour tester les features Cypher 25 (quantified patterns, allReduce, chemins pondérés)
+![Flight Data Visualization](./image/visualisation.png)
+
 
 ### Nettoyage des données
 
@@ -67,8 +62,6 @@ Le script `scripts/normalize_data.py` effectue plusieurs transformations :
    - Détection des vols de nuit (arrivée le lendemain)
 3. **Suppression des valeurs manquantes** : Retrait des vols sans horaires de départ/arrivée
 4. **Filtrage des aéroports** : Seuls les aéroports utilisés dans les vols sont conservés
-
-Résultat : Réduction de 323 à 313 aéroports, 107 230 vols exploitables.
 
 ### Modèle de graphe Neo4j
 
@@ -95,17 +88,17 @@ Résultat : Réduction de 323 à 313 aéroports, 107 230 vols exploitables.
 ### Modèle relationnel PostgreSQL
 
 ```
-airlines (14 rows)
+airlines
   - iata_code (PK)
   - name
 
-airports (313 rows)
+airports
   - iata_code (PK)
   - name, city, state, country
   - latitude, longitude
 
-flights (107 230 rows)
-  - id (PK, SERIAL)
+flights
+  - id (PK)
   - source (FK -> airports.iata_code)
   - target (FK -> airports.iata_code)
   - airline (FK -> airlines.iata_code)
@@ -121,8 +114,6 @@ Index sur `source`, `target`, `departure_ts` pour optimiser les requêtes récur
 ### 1. Chemins avec propriété croissante
 
 **Problème** : Trouver des itinéraires LAX->JFK où le retard augmente à chaque escale.
-
-Cette requête illustre le problème central de l'article SIGMOD : l'utilisation de `reduce()` dans une clause WHERE rend la requête NP-complète.
 
 **Cypher 5** (NOT EXISTS) :
 ```cypher
@@ -185,9 +176,7 @@ Stratégie : Filtre PENDANT la traversée grâce à l'opérateur `Repeat(Trail)`
 
 ### 2. Quantified Graph Patterns
 
-**Problème** : Trouver des itinéraires avec exactement N escales.
-
-Cypher 25 introduit la syntaxe `{n,m}` pour exprimer des répétitions de patterns. C'est un sucre syntaxique qui réduit drastiquement la verbosité.
+**Problème** : Trouver des itinéraires avec exactement N escales, sans repasser par le même aéroport.
 
 **Cypher 5** (explicite) :
 ```cypher
@@ -202,7 +191,7 @@ RETURN [n IN nodes(path) | n.iata_code] AS route
 LIMIT 10;
 ```
 
-7 lignes, 6 comparaisons pour éviter les cycles. Si on veut 2 OU 3 escales, il faut dupliquer la requête avec UNION.
+7 lignes, 6 comparaisons pour éviter les cycles.
 
 **Cypher 25** (quantified) :
 ```cypher
@@ -245,9 +234,9 @@ RETURN [n in nodes(path) | n.iata_code] AS route,
 
 **Problème** : `shortestPath()` minimise le nombre de sauts, pas la distance. Le vrai chemin optimal (JFK->BWI->DAY) fait 590 miles mais passe par 2 sauts aussi. L'algorithme BFS ne considère pas les poids.
 
-**Cypher 25** :
+**Cypher 5/25 pondéré** :
 ```cypher
-MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..2]->(end:Airport {iata_code: 'DAY'})
+MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..3]->(end:Airport {iata_code: 'DAY'})
 WITH path, reduce(dist = 0, r in relationships(path) | dist + r.distance) AS total_distance
 ORDER BY total_distance
 LIMIT 1
@@ -401,8 +390,6 @@ LIMIT 50;
 - Moins lisible : la logique métier (delay croissant) est noyée dans la syntaxe récursive
 
 **Performance** : Comparable à Cypher 5 (~1-2 secondes). SQL n'a pas d'équivalent à `allReduce()` pour optimiser.
-
-**Avantage** : Moins de risque d'écrire accidentellement une requête NP-complète. La verbosité de SQL pousse le développeur à réfléchir.
 
 ### Plus courts chemins
 

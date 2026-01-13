@@ -23,26 +23,9 @@ route,num_hops,total_distance
 // Version 2: Exploration exhaustive avec limite de profondeur
 // PROBLÈME: explore TOUS les chemins - complexité exponentielle
 // Timeout probable pour graphes avec beaucoup de nœuds/relations comme le notre
-MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..5]->(end:Airport {iata_code: 'DAY'})
+MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..3]->(end:Airport {iata_code: 'DAY'})
 WITH path, reduce(dist = 0, r in relationships(path) | dist + r.distance) AS total_distance
 ORDER BY total_distance ASC
-LIMIT 1
-RETURN
-  [n in nodes(path) | n.iata_code] AS route,
-  length(path) AS num_hops,
-  total_distance;
-
-// CYPHER 25 avec allReduce
-// Utilisation de allReduce pour minimiser les distances mais toujours pas optimal
-// Fonctionne sur JFK → DAY car peu de chemins possibles (2-3)
-// Mais si on augmente la profondeur ça devient impossible (Timeout)
-// Dans notre cas on a pas de trajet a plus de 1 escale (2 hops)
-CYPHER 25
-MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..2]->(end:Airport {iata_code: 'DAY'})
-WITH path,
-     [r in relationships(path) | r.distance] AS distances,
-     reduce(dist = 0, r in relationships(path) | dist + r.distance) AS total_distance
-ORDER BY total_distance
 LIMIT 1
 RETURN
   [n in nodes(path) | n.iata_code] AS route,
@@ -103,15 +86,6 @@ CALL gds.graph.drop('flights-weighted');
 ================================================================================
 RÉSUMÉ POUR LE RAPPORT
 ================================================================================
-
-PERFORMANCES MESURÉES (JFK → DAY, optimal = 590 miles via BWI)
-
-| Approche              | Temps  | Distance | Optimal? | Complexité        |
-|-----------------------|--------|----------|----------|-------------------|
-| Cypher shortestPath() | 15ms   | 1192 mi  | ✗        | BFS (min sauts)   |
-| Cypher exhaustif *1..2| 293ms  | 590 mi   | ✓        | O(branches^depth) |
-| Cypher exhaustif *1..3| 137s   | 590 mi   | ✓        | 467x plus lent!   |
-| GDS Dijkstra          | 37ms   | 590 mi   | ✓        | O(E log V)        |
 
 
 EXPLOSION COMBINATOIRE

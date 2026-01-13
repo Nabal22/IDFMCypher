@@ -1,15 +1,8 @@
-// ========================================
 // REQUÊTE 1 : INCREASING PROPERTY PATHS
-// ========================================
 // Comparaison Cypher 5 vs Cypher 25
-// Exemple : Trouver des chemins de vols où le retard (delay) augmente à chaque escale
-//
-// Problématique SIGMOD : reduce() dans WHERE clause = NP-complet
-// Solution Cypher 25 : allReduce() optimisé
+// Trouver des chemins de vols où le retard (delay) augmente à chaque escale
 
-// ========================================
-// CYPHER 5 : NOT EXISTS (PROBLÉMATIQUE)
-// ========================================
+// CYPHER 5 : NOT EXISTS
 
 PROFILE
 CYPHER 5
@@ -50,14 +43,13 @@ WHERE allReduce(
   prev_delay IS NOT NULL
 )
 RETURN
-  path
+  [n IN nodes(path) | n.iata_code] AS route,
 LIMIT 50;
 
-// ========================================
 // Résultats Requêtes
-// ========================================
 
---------------------------------
+Avec un order by on voit qu'on a les mêmes résultats
+
 
 ## Cypher 5
 

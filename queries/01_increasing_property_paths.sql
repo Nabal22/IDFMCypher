@@ -28,7 +28,7 @@ WITH RECURSIVE flight_paths AS (
     FROM flights f
     INNER JOIN flight_paths fp ON f.source = fp.target
     WHERE 
-        fp.hops < 4 
+        fp.hops <= 4 
         AND f.delay > fp.last_delay 
         AND f.departure_ts > fp.last_arrival_ts 
 )
@@ -40,5 +40,5 @@ SELECT
     total_delay
 FROM flight_paths
 WHERE target = 'JFK' 
-  AND hops BETWEEN 2 AND 4
+  AND hops >= 2
 LIMIT 50;

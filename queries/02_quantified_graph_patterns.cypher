@@ -1,10 +1,6 @@
-// ========================================
 // REQUÊTE 2 : QUANTIFIED GRAPH PATTERNS
-// ========================================
 
-// ========================================
 // CAS D'USAGE 1 : Exactement N escales
-// ========================================
 
 // Cypher 25 : Trouver des chemins avec EXACTEMENT 2 escales (3 vols)
 CYPHER 25
@@ -20,7 +16,7 @@ WITH [n IN nodes(path) | n.iata_code] AS route
 RETURN route
 LIMIT 10;
 
-// Cypher 5 : Sans quantified patterns (plus verbeux)
+// Cypher 5 : Sans quantified patterns
 // Doit spécifier explicitement 3 vols (2 escales)
 CYPHER 5
 MATCH path = (start:Airport {iata_code: 'LAX'})
@@ -35,31 +31,6 @@ RETURN route
 LIMIT 10;
 // si on ne met pas le LIMIT 10 la requête CYPHER 5 sera anormalement longue
 
-// ========================================
-// COMPARAISON : Avec vs Sans Quantified Patterns
-// ========================================
-
-// SANS quantified patterns (Cypher 5)
-// Chemins de EXACTEMENT 3 hops
-MATCH path1 = (s:Airport)-[:FLIGHT]->(a:Airport)-[:FLIGHT]->(b:Airport)-[:FLIGHT]->(e:Airport)
-WHERE s.iata_code = 'LAX' AND e.iata_code = 'NYC'
-RETURN [n IN nodes(path1) | n.iata_code] AS route_3hops
-UNION
-
-// Si on veut 2 OU 3 hops, il faut dupliquer la requête
-MATCH path2 = (s:Airport)-[:FLIGHT]->(a:Airport)-[:FLIGHT]->(e:Airport)
-WHERE s.iata_code = 'LAX' AND e.iata_code = 'NYC'
-RETURN [n IN nodes(path2) | n.iata_code] AS route_2hops;
-
-// AVEC quantified patterns (Cypher 25) : plus simple
-CYPHER 25
-MATCH path = (s:Airport {iata_code: 'LAX'})
-  (()-->(:Airport)){2,3}
-  (e:Airport {iata_code: 'NYC'})
-RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
-  size(relationships(path)) AS hops
-ORDER BY hops;
 
 ================================================================================
 RÉSUMÉ POUR LE RAPPORT
