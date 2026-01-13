@@ -1,5 +1,4 @@
-// Nettoyage base
-MATCH (n) DETACH DELETE n;
+// Import Neo4j Cypher
 
 // Import Airlines
 LOAD CSV WITH HEADERS FROM 'file:///airlines.csv' AS row
@@ -64,18 +63,13 @@ FOR ()-[f:FLIGHT]-() ON (f.delay);
 CREATE INDEX flight_distance IF NOT EXISTS
 FOR ()-[f:FLIGHT]-() ON (f.distance);
 
-// Vérification - comptage noeuds
+// Comptage noeuds
 MATCH (a:Airport) RETURN 'Airports' as type, count(a) as count
 UNION
 MATCH (al:Airline) RETURN 'Airlines' as type, count(al) as count;
 
 // Comptage relations
 MATCH ()-[f:FLIGHT]->() RETURN 'Flights' as type, count(f) as count;
-
-// Échantillon
-MATCH (source:Airport)-[f:FLIGHT]->(target:Airport)
-RETURN source.iata_code, target.iata_code, f.airline, f.departure_ts, f.distance, f.delay
-LIMIT 10;
 
 // Top 10 pour tester
 MATCH (a:Airport)-[f:FLIGHT]->()
