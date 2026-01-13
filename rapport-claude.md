@@ -1,7 +1,13 @@
-# Cypher 5 vs Cypher 25 : Comparaison sur des Données de Vols Américains
-
-**Projet de Bases de Données Spécialisées - Master**
-
+---
+title: "Cypher 5 vs Cypher 25 : Comparaison sur des Données de Vols Américains"
+author: "Romain Groult & Alban Talagrand"
+date: "Janvier 2025"
+lang: fr
+geometry: margin=2.5cm
+fontsize: 11pt
+header-includes:
+  - \usepackage{fvextra}
+  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 ---
 
 ## Introduction
@@ -14,11 +20,41 @@ Le dataset choisi représente les vols américains de la première semaine de ja
 
 ### Source des données
 
+#### Choix initial : Dataset IDFM (abandonné)
+
+Nous avions initialement envisagé d'utiliser les données GTFS (General Transit Feed Specification) de l'IDFM (Île-de-France Mobilités) représentant le réseau de transports en commun francilien. Ce dataset présentait plusieurs fichiers interconnectés :
+
+- `agency.txt` : Opérateurs de transport
+- `routes.txt` : Lignes de transport
+- `trips.txt` : Trajets planifiés
+- `stop_times.txt` : Horaires d'arrêt pour chaque trajet
+- `stops.txt` : Stations et arrêts
+- `transfers.txt` : Correspondances entre arrêts
+- `pathways.txt` : Cheminements piétons dans les stations
+
+**Problème identifié** : Cette structure est orientée relationnelle. La modélisation en graphe était trop complexe :
+
+- Les "nœuds" étaient des stations, mais les relations entre elles ne sont pas directes
+- Il faut passer par 4 tables intermédiaires (route -> trip -> stop_time) pour relier deux stations
+- Les propriétés intéressantes (horaires, fréquences) sont dispersées dans plusieurs tables
+- Le graphe résultant aurait été un "graphe forcé" sans avantage réel
+
+C'est d'ailleurs un cas où PostgreSQL est mieux adapté que Neo4j : les données GTFS ont été conçues pour des requêtes relationnelles (jointures, agrégations temporelles).
+
+#### Choix final : Dataset de vols américains
+
 Dataset Kaggle "2015 Flight Delays and Cancellations" (US Department of Transportation) :
 
 - **Source** : 5,8 millions de vols sur l'année 2015
 - **Échantillon retenu** : Première semaine de janvier (1-7 janvier)
 - **Raison** : Volume gérable tout en conservant une densité suffisante pour observer des phénomènes intéressants
+
+**Avantages pour le projet** :
+
+- Structure naturellement graphe : Aéroports = nœuds, Vols = arêtes
+- Propriétés numériques sur les arêtes (distance, retard) adaptées aux algorithmes de chemins
+- Multi-hop paths représentent des itinéraires réels avec correspondances
+- Parfait pour tester les features Cypher 25 (quantified patterns, allReduce, chemins pondérés)
 
 ### Nettoyage des données
 
@@ -110,7 +146,6 @@ Stratégie : Génère TOUS les chemins (319 631), puis filtre *a posteriori*.
 - Temps : ~1,5 seconde
 - DB Hits : 16 340 381
 - Rows traitées : 320 799
-- Résultats finaux : 52 chemins valides
 
 **Cypher 25** (allReduce) :
 ```cypher
@@ -136,9 +171,12 @@ Stratégie : Filtre PENDANT la traversée grâce à l'opérateur `Repeat(Trail)`
 - Temps : ~3,5 ms
 - DB Hits : 39 904
 - Rows traitées : 9 290
-- Résultats finaux : 50 chemins valides
 
-**Gain** : 409x moins d'accès DB, 415x plus rapide. La différence s'accentuerait avec un graphe plus dense.
+**Gain** : 
+
+- Temps : 1 496,5ms de moins
+- DB Hits : 16 300 477 de moins
+- Rows traitées : 311 509 de moins
 
 **Plan d'exécution** :
 
@@ -182,12 +220,7 @@ LIMIT 10;
 
 1 ligne pour le pattern, `allReduce()` pour détecter les cycles. Pour un range (2-3 escales), on change juste `{3}` en `{2,3}`.
 
-**Réduction** :
-
-- 86% de code en moins pour un nombre fixe
-- 50% de requêtes en moins pour un range (évite UNION)
-
-**Intérêt** : Améliore la maintenabilité. Modifier la profondeur = changer un chiffre vs réécrire le pattern entier. Réduit les risques d'oublier une clause WHERE.
+**Intérêt** : Améliore la maintenabilité. Modifier la profondeur = changer un chiffre vs réécrire le pattern entier.
 
 ### 3. Plus courts chemins pondérés
 
@@ -195,7 +228,7 @@ LIMIT 10;
 
 C'est ici que les limites de Cypher pur deviennent flagrantes.
 
-**Cypher 5** (`shortestPath`) :
+**Cypher 5** (`shortestPath`) Pas pondéré :
 ```cypher
 MATCH path = shortestPath(
   (start:Airport {iata_code: 'JFK'})-[:FLIGHT*]->(end:Airport {iata_code: 'DAY'})
@@ -212,7 +245,7 @@ RETURN [n in nodes(path) | n.iata_code] AS route,
 
 **Problème** : `shortestPath()` minimise le nombre de sauts, pas la distance. Le vrai chemin optimal (JFK->BWI->DAY) fait 590 miles mais passe par 2 sauts aussi. L'algorithme BFS ne considère pas les poids.
 
-**Cypher 25** (exploration exhaustive) :
+**Cypher 25** :
 ```cypher
 MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..2]->(end:Airport {iata_code: 'DAY'})
 WITH path, reduce(dist = 0, r in relationships(path) | dist + r.distance) AS total_distance
@@ -230,19 +263,20 @@ RETURN [n in nodes(path) | n.iata_code] AS route, total_distance;
 **Explosion combinatoire** :
 
 - `*1..2` (2 sauts max) : 293 ms
-- `*1..3` (3 sauts max) : 137 secondes (facteur 467x!)
+- `*1..3` (3 sauts max) : 137 secondes
+- `*1..4` (4 sauts max) : timeout
 
-Au-delà de 2-3 sauts, la requête devient inutilisable. Cypher n'a pas de priority queue pour implémenter Dijkstra efficacement.
+Au-delà de 2-3 sauts, la requête devient inutilisable.
 
 **GDS Dijkstra** :
 ```cypher
-CALL gds.graph.project('flights-weighted', 'Airport', {
+CALL gds.graph.project('flights', 'Airport', {
   FLIGHT: { properties: 'distance' }
 });
 
 MATCH (source:Airport {iata_code: 'JFK'})
 MATCH (target:Airport {iata_code: 'DAY'})
-CALL gds.shortestPath.dijkstra.stream('flights-weighted', {
+CALL gds.shortestPath.dijkstra.stream('flights', {
   sourceNode: source,
   targetNode: target,
   relationshipWeightProperty: 'distance'
@@ -260,12 +294,9 @@ RETURN [nodeId in nodeIds | gds.util.asNode(nodeId).iata_code] AS route,
 
 **Comparaison** :
 
-| Approche               | Temps  | Distance | Optimal | Complexité        |
-|------------------------|--------|----------|---------|-------------------|
-| Cypher `shortestPath`  | 15 ms  | 1192 mi  | Non     | BFS (min sauts)   |
-| Cypher exhaustif (d<=2)| 293 ms | 590 mi   | Oui     | O(branches^depth) |
-| Cypher exhaustif (d<=3)| 137 s  | 590 mi   | Oui     | Exponentiel       |
-| GDS Dijkstra           | 37 ms  | 590 mi   | Oui     | O(E log V)        |
+- Cypher 5 : Non pondéré, pas optimal
+- Cypher 25 : Timeout au-delà de 2-3 sauts
+- GDS Dijkstra : Toujours performant, optimal, scalable
 
 **Conclusion** : Pour des chemins pondérés, GDS est obligatoire. Cypher pur n'a pas les structures de données nécessaires (priority queue).
 
@@ -294,7 +325,7 @@ RETURN a.iata_code AS airport, out_degree + in_degree AS degree
 ORDER BY degree DESC LIMIT 10;
 ```
 
-**Résultat** : Performances similaires pour ce cas simple (algorithme linéaire). Cypher 25 est plus lisible et ne nécessite pas de projection.
+**Résultat** : Performances similaires pour ce cas simple.
 
 **Triangle Count** :
 
@@ -411,94 +442,6 @@ LIMIT 1;
 
 **Performance** : Comparable à Cypher exhaustif (centaines de ms pour 2 sauts, timeout à 3+).
 
-## Analyse des Plans d'Exécution
-
-### Cypher 5 : VarLengthExpand + Apply + Anti
-
-Exemple du plan pour la requête "delays croissants" :
-
-```
-+----------------------+--------+----------+
-| Operator             | Rows   | DB Hits  |
-+----------------------+--------+----------+
-| ProduceResults       | 50     | 0        |
-| Projection           | 50     | 1 300    |
-| Limit                | 50     | 0        |
-| Apply                | 52     | 0        |
-|   Anti               | 52     | 0        |
-|     Limit            | 319578 | 0        |
-|     Filter           | 319578 | 1283196  |
-| VarLengthExpand      | 319631 | 15055885 |
-| MultiNodeIndexSeek   | 0      | 0        |
-+----------------------+--------+----------+
-```
-
-**Observation** :
-
-1. `VarLengthExpand` génère 319 631 chemins (15M DB hits)
-2. Pour CHAQUE chemin, `Apply` lance un sous-plan qui :
-   - Unwind les relations du chemin
-   - Vérifie si au moins une paire viole la contrainte croissante
-   - Si oui, le chemin est rejeté (`Anti`)
-3. Résultat : 52 chemins valides, mais après avoir traité 320k rows
-
-**Problème** : Le filtre agit trop tard. Le moteur ne peut pas optimiser car le prédicat est dans une sous-requête corrélée.
-
-### Cypher 25 : Repeat(Trail) avec pruning
-
-```
-+----------------------+------+---------+
-| Operator             | Rows | DB Hits |
-+----------------------+------+---------+
-| ProduceResults       | 50   | 0       |
-| Projection           | 50   | 1 004   |
-| Limit                | 50   | 0       |
-| NullifyMetadata      | 50   | 0       |
-| Repeat(Into, Trail)  | 50   | 0       |
-|   Filter             | 6362 | 12724   |
-|   Projection         | 9289 | 15651   |
-|   Expand(All)        | 9290 | 9295    |
-| MultiNodeIndexSeek   | 1    | 4       |
-+----------------------+------+---------+
-```
-
-**Observation** :
-
-1. `Repeat(Trail)` intègre directement le filtre `allReduce()`
-2. À chaque expansion (`Expand`), la projection calcule `prev_delay`
-3. Le filtre rejette immédiatement les chemins invalides (9289 vers 6362)
-4. Résultat : Seulement 6362 chemins explorés au total
-
-**Avantage** : Le pruning s'effectue pendant la traversée. Le moteur évite d'explorer des branches inutiles.
-
-**Différence clé** :
-
-- Cypher 5 : Generate puis Filter (trop tard)
-- Cypher 25 : Generate + Filter (en ligne)
-
-### PostgreSQL : Recursive CTE
-
-```
-QUERY PLAN
-----------------------------------------
-Limit
-  -> Sort
-      -> CTE Scan on paths
-          -> Recursive Union
-              -> Seq Scan on flights
-              -> Hash Join
-                  -> CTE Scan on paths
-                  -> Hash (Seq Scan on flights)
-```
-
-**Observation** :
-
-- PostgreSQL explore aussi exhaustivement (pas de pruning avancé)
-- Le filtre `f.delay > p.last_delay` s'applique dans le JOIN
-- Performance similaire à Cypher 5
-
-**Différence** : SQL optimise moins bien les path queries car ce n'est pas son cas d'usage principal. Les CTE récursives sont moins optimisées que les opérateurs natifs de Neo4j.
-
 ## Limitations et Extensions Possibles
 
 ### Limites du projet
@@ -509,34 +452,15 @@ Limit
 
 3. **GDS vs SQL** : Pas de comparaison GDS vs requêtes PostgreSQL optimisées (ex: pgRouting pour Dijkstra). Aurait pu enrichir l'analyse.
 
-### Extensions intéressantes
+4. **REPEATABLE ELEMENTS non testé** : Cypher 25 introduit la syntaxe `REPEATABLE ELEMENTS` qui permet aux chemins de revisiter les mêmes nœuds. Nous n'avons pas utilisé cette feature car elle n'était pas pertinente pour notre modèle de données :
 
-**Chemins temporellement valides** :
-```cypher
-WHERE allReduce(
-  prev_arrival = datetime('1970-01-01T00:00:00'),
-  rel IN flights |
-    CASE
-      WHEN duration.between(prev_arrival, rel.departure_ts).minutes >= 60
-      THEN rel.arrival_ts
-      ELSE null
-    END,
-  prev_arrival IS NOT NULL
-)
-```
+   - Chaque vol (`FLIGHT`) est une relation unique avec un timestamp distinct
+   - Exemple : ANC->SEA à 23h54 et ANC->SEA à 08h30 sont deux relations différentes
+   - Sans `REPEATABLE ELEMENTS` : on ne peut pas revisiter le même nœud (aéroport)
+   - Avec `REPEATABLE ELEMENTS` : on peut revisiter le même nœud (aéroport)
+   - Dans les deux cas, on peut emprunter différentes relations entre les mêmes nœuds
 
-Filtrerait les itinéraires avec minimum 1h de correspondance.
-
-**Comparaison avec d'autres SGBD** :
-
-- **MemGraph** : Implémente Cypher 25, serait intéressant pour benchmarker
-- **DuckDB** : Implémente SQL/PGQ (Property Graph Queries), nouveau standard ISO qui ressemble à Cypher
-
-**Algorithmes GDS avancés** :
-
-- PageRank : Identifier les hubs (aéroports centraux)
-- Betweenness Centrality : Aéroports critiques (plus court chemin passe souvent par eux)
-- Community Detection : Groupes d'aéroports fortement connectés (régions géographiques)
+   Pour des itinéraires réalistes, les passagers ne font pas de circuits comme LAX->ATL->LAX->JFK. La feature aurait été utile avec des relations sans timestamps.
 
 ## Conclusion
 
@@ -546,16 +470,9 @@ Ce projet confirme empiriquement les résultats théoriques de l'article SIGMOD 
 
 2. **`allReduce()` résout le problème** : En intégrant le filtre dans la traversée, Cypher 25 évite l'explosion combinatoire.
 
-3. **Quantified patterns simplifient le code** : Réduction de 50-86% de code pour des patterns répétitifs. Améliore la maintenabilité.
+3. **Quantified patterns simplifient le code** : Réduction de code pour des patterns répétitifs.
 
-4. **GDS est indispensable pour les chemins pondérés** : Cypher pur (même v25) n'a pas les structures de données pour Dijkstra. L'exploration exhaustive timeout au-delà de 2-3 sauts.
+4. **GDS est indispensable pour les chemins pondérés** : Cypher pur (même v25) n'a pas les structures de données pour Dijkstra. Cela timeout au-delà de 2-3 sauts.
 
 5. **SQL n'est pas adapté aux path queries** : Plus verbeux, moins lisible, performances comparables à Cypher 5 (pas d'équivalent à `allReduce()`).
 
-**Recommandations** :
-
-- Utiliser Cypher 25 pour toutes les requêtes de chemins avec contraintes
-- Privilégier GDS pour algorithmes complexes (Dijkstra, PageRank, etc.)
-- Réserver SQL aux requêtes relationnelles classiques (agrégations, jointures simples)
-
-**Perspective** : L'évolution de Cypher montre que les langages de requêtes graphes maturent. La standardisation GQL (ISO 2024) bénéficiera de ces leçons. Les quantified patterns et `allReduce()` devraient faire partie de la spécification pour éviter les pièges de Cypher 5.
