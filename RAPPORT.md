@@ -361,9 +361,9 @@ WHERE allReduce(
 RETURN [n IN nodes(path) | n.iata_code] AS route LIMIT 10;
 ```
 
-![Résultat de la requête](./image/05_temporal_constraints.png)
+![Résultat de la requête sur Neo4j Browser](./image/05_temporal_constraints.png){ width=70% }
 
-
+\newpage
 ## Équivalents SQL
 
 ### Chemins avec propriété croissante
@@ -442,4 +442,4 @@ Le SQL récursif reste verbeux et peu lisible pour les path queries. Sans équiv
 
 ---
 
-PDF du rapport généré avec [pandoc](https://pandoc.org/) depuis un fichier markdown.
+PDF du rapport converti avec [pandoc](https://pandoc.org/) depuis un fichier markdown.
