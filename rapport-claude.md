@@ -349,45 +349,58 @@ WITH a, count(*) / 3 AS triangleCount
 SQL ne supporte pas nativement les path queries. Il faut utiliser une requête récursive :
 
 ```sql
-WITH RECURSIVE paths AS (
-  -- Cas de base : vols directs depuis LAX
-  SELECT
-    source,
-    target,
-    ARRAY[source, target] AS route,
-    ARRAY[delay] AS delays,
-    1 AS hops,
-    delay AS last_delay
-  FROM flights
-  WHERE source = 'LAX'
+WITH RECURSIVE flight_paths AS (
 
-  UNION ALL
+    SELECT
+        f.source,
+        f.target,
+        f.arrival_ts AS last_arrival_ts,
+        f.delay AS last_delay,
+        1 AS hops,
 
-  -- Cas récursif : ajouter un vol
-  SELECT
-    f.source,
-    f.target,
-    p.route || f.target,
-    p.delays || f.delay,
-    p.hops + 1,
-    f.delay
-  FROM paths p
-  JOIN flights f ON p.target = f.source
-  WHERE f.delay > p.last_delay
-    AND p.hops < 4
-    AND NOT (f.target = ANY(p.route))
+        ARRAY[f.source, f.target]::VARCHAR[] AS route,
+        ARRAY[f.delay]::NUMERIC[] AS delays,
+
+        f.delay::NUMERIC AS total_delay
+    FROM flights f
+    WHERE f.source = 'LAX'
+
+    UNION ALL
+
+    SELECT
+        fp.source,
+        f.target,
+        f.arrival_ts,
+        f.delay,
+        fp.hops + 1,
+        fp.route || f.target,
+        fp.delays || f.delay,
+        fp.total_delay + f.delay
+    FROM flights f
+    INNER JOIN flight_paths fp ON f.source = fp.target
+    WHERE
+        fp.hops <= 4
+        AND f.delay > fp.last_delay
+        AND f.departure_ts > fp.last_arrival_ts
 )
-SELECT route, delays
-FROM paths
-WHERE target = 'JFK' AND hops >= 2
+
+SELECT
+    route,
+    delays,
+    hops,
+    total_delay
+FROM flight_paths
+WHERE target = 'JFK'
+  AND hops >= 2
 LIMIT 50;
 ```
 
 **Différences** :
 
-- Plus verbeux (25 lignes vs 15 pour Cypher 5, vs 10 pour Cypher 25)
-- Nécessite de gérer manuellement les cycles (`NOT (f.target = ANY(p.route))`)
+- Plus verbeux (44 lignes vs 10 pour Cypher 25)
+- Nécessite de gérer manuellement les timestamps (`f.departure_ts > fp.last_arrival_ts`)
 - Moins lisible : la logique métier (delay croissant) est noyée dans la syntaxe récursive
+- Accumule à chaque itération
 
 **Performance** : Comparable à Cypher 5 (~1-2 secondes). SQL n'a pas d'équivalent à `allReduce()` pour optimiser.
 
