@@ -57,7 +57,7 @@ Le script `scripts/normalize_data.py` effectue plusieurs transformations :
 
 1. **Filtrage temporel** : Sélection des vols du 1er au 7 janvier 2015
 2. **Gestion des timestamps** :
-   - Conversion des horaires HHMM vers ISO 8601
+   - Conversion des horaires HHMM vers des timestamps utilisable par Neo4j/PostgreSQL
    - Traitement du minuit (2400 -> 0000)
    - Détection des vols de nuit (arrivée le lendemain)
 3. **Suppression des valeurs manquantes** : Retrait des vols sans horaires de départ/arrivée
@@ -73,7 +73,7 @@ Le script `scripts/normalize_data.py` effectue plusieurs transformations :
 **Relations** :
 
 - `FLIGHT` (107 230) : Propriétés :
-  - `departure_ts` / `arrival_ts` : Timestamps ISO 8601
+  - `departure_ts` / `arrival_ts` : Timestamps
   - `distance` : Distance en miles
   - `delay` : Retard au départ en minutes (peut être négatif)
   - `airline` : Code de la compagnie
