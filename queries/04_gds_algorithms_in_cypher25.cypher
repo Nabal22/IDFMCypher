@@ -1,28 +1,13 @@
 // REQUÊTE 4 : IMPLÉMENTATION D'ALGORITHMES GDS EN CYPHER 25
-// Objectif : Implémenter directement en Cypher 25 des algorithmes
-// normalement disponibles uniquement dans GDS
 // Comparaison : Cypher 25 pur vs GDS library
 
-// Projection ORIENTÉE pour Degree Centrality
+// Projection
 CALL gds.graph.project(
   'flights-network-directed',
   'Airport',
   'FLIGHT',
   {
     relationshipProperties: ['distance', 'delay']
-  }
-);
-
-// Projection NON-ORIENTÉE pour Triangle Count
-// (triangleCount requiert UNDIRECTED)
-CALL gds.graph.project(
-  'flights-network-undirected',
-  'Airport',
-  {
-    FLIGHT: {
-      orientation: 'UNDIRECTED',
-      properties: ['distance', 'delay']
-    }
   }
 );
 
@@ -54,33 +39,4 @@ ORDER BY total_degree DESC
 LIMIT 10;
 // Completed after 43 154 ms
 
-// Triangle Count (Clustering Coefficient)
-
-// Triangle Count avec GDS (utilise la projection UNDIRECTED)
-CALL gds.triangleCount.stream('flights-network-undirected')
-YIELD nodeId, triangleCount
-WHERE triangleCount > 0
-RETURN
-  gds.util.asNode(nodeId).iata_code AS airport,
-  gds.util.asNode(nodeId).city AS city,
-  triangleCount
-ORDER BY triangleCount DESC
-LIMIT 10;
-// Completed after 35 ms
-
-// Triangle Count en Cypher 25
-CYPHER 25
-MATCH (a:Airport)-[:FLIGHT]->(b:Airport)-[:FLIGHT]->(c:Airport)-[:FLIGHT]->(a)
-WITH a, count(DISTINCT [b, c]) AS triangles
-WHERE triangles > 0
-RETURN
-  a.iata_code AS airport,
-  a.city AS city,
-  triangles AS triangle_count
-ORDER BY triangle_count DESC
-LIMIT 10;
-// Completed after 13 minutes 14 secondes
-
-// Suppression des graphes projetés
 CALL gds.graph.drop('flights-network-directed', false);
-CALL gds.graph.drop('flights-network-undirected', false);

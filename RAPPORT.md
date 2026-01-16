@@ -294,48 +294,38 @@ RETURN [nodeId in nodeIds | gds.util.asNode(nodeId).iata_code] AS route,
 
 GDS :
 ```cypher
-CALL gds.degree.stream('my-graph')
+CALL gds.degree.stream('flights-network-directed')
 YIELD nodeId, score
-RETURN gds.util.asNode(nodeId).iata_code AS airport, score
-ORDER BY score DESC LIMIT 10;
+RETURN
+  gds.util.asNode(nodeId).iata_code AS airport,
+  gds.util.asNode(nodeId).city AS city,
+  score AS degree
+ORDER BY degree DESC
+LIMIT 10;
 ```
+
+- Temps : 30 ms
 
 Cypher 25 :
 ```cypher
 MATCH (a:Airport)
-OPTIONAL MATCH (a)-[:FLIGHT]->()
-WITH a, count(*) AS out_degree
-OPTIONAL MATCH (a)<-[:FLIGHT]-()
-WITH a, out_degree, count(*) AS in_degree
-RETURN a.iata_code AS airport, out_degree + in_degree AS degree
-ORDER BY degree DESC LIMIT 10;
+OPTIONAL MATCH (a)-[out:FLIGHT]->()
+OPTIONAL MATCH (a)<-[in:FLIGHT]-()
+RETURN
+  a.iata_code AS airport,
+  a.city AS city,
+  count(DISTINCT out) AS out_degree,
+  count(DISTINCT in) AS in_degree,
+  count(DISTINCT out) + count(DISTINCT in) AS total_degree
+ORDER BY total_degree DESC
+LIMIT 10;
 ```
 
-**Résultat** : Performances similaires pour ce cas simple.
+- Temps : 43 154 ms
 
-**Triangle Count** :
+**Résultat** : GDS est beaucoup plus rapide que Cypher 25 pour le degree centrality.
 
-GDS :
-```cypher
-CALL gds.triangleCount.stream('my-graph')
-YIELD nodeId, triangleCount
-RETURN gds.util.asNode(nodeId).iata_code AS airport, triangleCount
-ORDER BY triangleCount DESC LIMIT 10;
-```
-
-Cypher 25 :
-```cypher
-MATCH (a:Airport)-[:FLIGHT]->(b:Airport)-[:FLIGHT]->(c:Airport)-[:FLIGHT]->(a)
-RETURN a.iata_code AS airport, count(*) AS triangles
-ORDER BY triangles DESC LIMIT 10;
-```
-
-**Problème** : Cette requête compte chaque triangle 3 fois (une fois par sommet). Correction :
-```cypher
-WITH a, count(*) / 3 AS triangleCount
-```
-
-**Observation** : Pour des algorithmes polynomiaux simples, Cypher 25 est compétitif. L'overhead de GDS (projection du graphe) peut même le rendre plus lent.
+**Observation** : Contrairement à ce qu'on pourrait penser, même pour des algorithmes polynomiaux simples, GDS offre des performances nettement supérieures grâce à ses structures de données optimisées.
 
 **Limite** : Dès qu'on passe à des algorithmes nécessitant des structures de données avancées (Dijkstra, PageRank, Betweenness Centrality), GDS devient indispensable. Ces algorithmes ne sont pas implémentables efficacement en Cypher.
 
