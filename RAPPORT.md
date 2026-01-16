@@ -339,6 +339,31 @@ WITH a, count(*) / 3 AS triangleCount
 
 **Limite** : Dès qu'on passe à des algorithmes nécessitant des structures de données avancées (Dijkstra, PageRank, Betweenness Centrality), GDS devient indispensable. Ces algorithmes ne sont pas implémentables efficacement en Cypher.
 
+### 5. Contraintes temporelles sur les chemins
+
+**Problème** : Trouver des itinéraires LAX->JFK avec un temps de correspondance minimum de 45 minutes entre chaque vol.
+
+**Cypher 25**:
+```cypher
+MATCH path = (start:Airport {iata_code: 'LAX'})
+  (()-[f:FLIGHT]->(:Airport)){2,3}
+  (end:Airport {iata_code: 'JFK'})
+WHERE allReduce(
+  prev_arrival = datetime('2015-01-01T00:00:00'),
+  rel IN f |
+    CASE
+      WHEN duration.between(prev_arrival, rel.departure_ts).minutes >= 45
+      THEN rel.arrival_ts
+      ELSE null
+    END,
+  prev_arrival IS NOT NULL
+)
+RETURN [n IN nodes(path) | n.iata_code] AS route LIMIT 10;
+```
+
+![Résultat de la requête](./image/05_temporal_constraints.png)
+
+
 ## Équivalents SQL
 
 ### Chemins avec propriété croissante

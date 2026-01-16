@@ -92,6 +92,7 @@ EXPLAIN ANALYZE [votre requête];
 2. **02_quantified_graph_patterns** - Patterns quantifiés (Cypher 5 vs 25)
 3. **03_shortest_path_algorithms** - Plus courts chemins pondérés (Cypher vs GDS)
 4. **04_gds_algorithms_in_cypher25** - Algorithmes GDS en Cypher pur
+5. **05_temporal_constraints** - Contraintes temporelles (temps de correspondance minimum)
 
 ## Résultats
 
