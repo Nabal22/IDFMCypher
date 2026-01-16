@@ -46,10 +46,7 @@ Dataset Kaggle "2015 Flight Delays and Cancellations" (US Department of Transpor
 - Échantillon retenu : Première semaine de janvier
 - Raison : Volume raisonnable tout en conservant un nombre de données suffisantes pour avoir des requêtes intéressantes
 
-##### Visualisation du dataset
-
-![Flight Data Visualization](./image/visualisation.png)
-
+![Visualisation du dataset](./image/visualisation.png)
 
 ### Nettoyage des données
 
@@ -402,79 +399,21 @@ LIMIT 50;
 - Moins lisible : la logique métier (delay croissant) est noyée dans la syntaxe récursive
 - Accumule à chaque itération
 
-**Performance** : Comparable à Cypher 5 (~1-2 secondes). SQL n'a pas d'équivalent à `allReduce()` pour optimiser.
-
-### Plus courts chemins
-
-SQL récursif avec BFS :
-```sql
-WITH RECURSIVE paths AS (
-  SELECT
-    source,
-    target,
-    ARRAY[source, target] AS route,
-    distance,
-    1 AS hops
-  FROM flights
-  WHERE source = 'JFK'
-
-  UNION ALL
-
-  SELECT
-    f.source,
-    f.target,
-    p.route || f.target,
-    p.distance + f.distance,
-    p.hops + 1
-  FROM paths p
-  JOIN flights f ON p.target = f.source
-  WHERE p.hops < 3
-    AND NOT (f.target = ANY(p.route))
-)
-SELECT route, distance
-FROM paths
-WHERE target = 'DAY'
-ORDER BY distance
-LIMIT 1;
-```
-
-**Problème** : Même limitation que Cypher pur. Sans priority queue, impossible d'implémenter Dijkstra efficacement. La requête explore exhaustivement.
-
-**Performance** : Comparable à Cypher exhaustif (centaines de ms pour 2 sauts, timeout à 3+).
-
 ## Limitations et Extensions Possibles
 
 ### Limites du projet
 
-1. **Période courte** : 1 semaine de données limite la profondeur des chemins testables (max 2-3 escales réalistes dans notre graphe).
+Une semaine de données limite les chemins testables à 2-3 escales maximum. Les requêtes ne vérifient pas les contraintes temporelles strictes entre vols (temps de correspondance), bien que cela soit possible avec `allReduce()`. Nous n'avons pas comparé GDS avec des extensions PostgreSQL comme pgRouting pour Dijkstra.
 
-2. **Pas de contraintes temporelles strictes** : On n'a pas implémenté de requêtes vérifiant que l'arrivée d'un vol précède le départ du suivant (avec marge pour correspondance). C'est faisable avec `allReduce()` mais complexifie les requêtes.
-
-3. **GDS vs SQL** : Pas de comparaison GDS vs requêtes PostgreSQL optimisées (ex: pgRouting pour Dijkstra). Aurait pu enrichir l'analyse.
-
-4. **REPEATABLE ELEMENTS non testé** : Cypher 25 introduit la syntaxe `REPEATABLE ELEMENTS` qui permet aux chemins de revisiter les mêmes nœuds. Nous n'avons pas utilisé cette feature car elle n'était pas pertinente pour notre modèle de données :
-
-   - Chaque vol (`FLIGHT`) est une relation unique avec un timestamp distinct
-   - Exemple : ANC->SEA à 23h54 et ANC->SEA à 08h30 sont deux relations différentes
-   - Sans `REPEATABLE ELEMENTS` : on ne peut pas revisiter le même nœud (aéroport)
-   - Avec `REPEATABLE ELEMENTS` : on peut revisiter le même nœud (aéroport)
-   - Dans les deux cas, on peut emprunter différentes relations entre les mêmes nœuds
-
-   Pour des itinéraires réalistes, les passagers ne font pas de circuits comme LAX->ATL->LAX->JFK. La feature aurait été utile avec des relations sans timestamps.
+La feature `REPEATABLE ELEMENTS` de Cypher 25 n'a pas été testée car elle n'est pas pertinente ici. Chaque vol est unique (identifié par son timestamp), donc deux vols ANC->SEA à des heures différentes sont déjà des relations distinctes. Les itinéraires circulaires (LAX->ATL->LAX->JFK) n'ont pas de sens pour des vols commerciaux.
 
 ## Conclusion
 
-Ce projet confirme empiriquement les résultats théoriques de l'article SIGMOD :
+Ce projet confirme les résultats de l'article SIGMOD. Cypher 5 avec `reduce()` dans WHERE ne passe pas à l'échelle et génère tous les chemins puis filtre, tandis que Cypher 25 filtre pendant la traversée avec `allReduce()`, évitant l'explosion combinatoire.
 
-1. **Cypher 5 avec `reduce()` dans WHERE ne scale pas** : 16M DB hits vs 40k pour la même requête en Cypher 25 (facteur 409x).
+Les quantified patterns simplifient le code pour les patterns répétitifs. Cependant, pour les chemins pondérés (Dijkstra), GDS reste indispensable car Cypher pur manque de structures optimisées (priority queues). Au-delà de 2-3 sauts, les requêtes timeout.
 
-2. **`allReduce()` résout le problème** : En intégrant le filtre dans la traversée, Cypher 25 évite l'explosion combinatoire.
-
-3. **Quantified patterns simplifient le code** : Réduction de code pour des patterns répétitifs.
-
-4. **GDS est indispensable pour les chemins pondérés** : Cypher pur (même v25) n'a pas les structures de données pour Dijkstra. Cela timeout au-delà de 2-3 sauts.
-
-5. **SQL n'est pas adapté aux path queries** : Plus verbeux, moins lisible, performances comparables à Cypher 5 (pas d'équivalent à `allReduce()`).
+Le SQL récursif reste verbeux et peu lisible pour les path queries. Sans équivalent à `allReduce()`, les performances sont comparables à Cypher 5, et la logique métier se perd dans la syntaxe récursive.
 
 ---
 
