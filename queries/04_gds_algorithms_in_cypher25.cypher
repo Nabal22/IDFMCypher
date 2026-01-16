@@ -1,6 +1,4 @@
-// ========================================
 // REQUÊTE 4 : IMPLÉMENTATION D'ALGORITHMES GDS EN CYPHER 25
-// ========================================
 // Objectif : Implémenter directement en Cypher 25 des algorithmes
 // normalement disponibles uniquement dans GDS
 // Comparaison : Cypher 25 pur vs GDS library
@@ -28,11 +26,9 @@ CALL gds.graph.project(
   }
 );
 
-// ========================================
-// ALGORITHME 1 : Degree Centrality
-// ========================================
+// Degree Centrality
 
-// 1a. Degree Centrality avec GDS
+// Degree Centrality avec GDS
 CALL gds.degree.stream('flights-network-directed')
 YIELD nodeId, score
 RETURN
@@ -43,7 +39,7 @@ ORDER BY degree DESC
 LIMIT 10;
 // Completed after 30 ms
 
-// 1b. Degree Centrality en Cypher 25 (facile !)
+// Degree Centrality en Cypher 25
 CYPHER 25
 MATCH (a:Airport)
 OPTIONAL MATCH (a)-[out:FLIGHT]->()
@@ -58,11 +54,9 @@ ORDER BY total_degree DESC
 LIMIT 10;
 // Completed after 43 154 ms
 
-// ========================================
-// ALGORITHME 2 : Triangle Count (Clustering Coefficient)
-// ========================================
+// Triangle Count (Clustering Coefficient)
 
-// 2a. Triangle Count avec GDS (utilise la projection UNDIRECTED)
+// Triangle Count avec GDS (utilise la projection UNDIRECTED)
 CALL gds.triangleCount.stream('flights-network-undirected')
 YIELD nodeId, triangleCount
 WHERE triangleCount > 0
@@ -74,7 +68,7 @@ ORDER BY triangleCount DESC
 LIMIT 10;
 // Completed after 35 ms
 
-// 2b. Triangle Count en Cypher 25
+// Triangle Count en Cypher 25
 CYPHER 25
 MATCH (a:Airport)-[:FLIGHT]->(b:Airport)-[:FLIGHT]->(c:Airport)-[:FLIGHT]->(a)
 WITH a, count(DISTINCT [b, c]) AS triangles
@@ -87,9 +81,6 @@ ORDER BY triangle_count DESC
 LIMIT 10;
 // Completed after 13 minutes 14 secondes
 
-// ========================================
-// CLEANUP : Supprimer les projections (optionnel)
-// ========================================
-
-// CALL gds.graph.drop('flights-network-directed', false);
-// CALL gds.graph.drop('flights-network-undirected', false);
+// Suppression des graphes projetés
+CALL gds.graph.drop('flights-network-directed', false);
+CALL gds.graph.drop('flights-network-undirected', false);

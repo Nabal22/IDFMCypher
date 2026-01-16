@@ -155,7 +155,7 @@ WHERE allReduce(
 RETURN path LIMIT 50;
 ```
 
-Stratégie : Filtre PENDANT la traversée grâce à l'opérateur `Repeat(Trail)`.
+Stratégie : Filtre PENDANT la traversée grâce à l'opérateur Trail.
 
 **Résultats** :
 

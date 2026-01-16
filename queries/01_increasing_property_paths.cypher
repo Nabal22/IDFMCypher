@@ -22,9 +22,7 @@ RETURN
   reduce(total = 0, r IN relationships(path) | total + r.delay) AS total_delay
 LIMIT 50;
 
-// ========================================
 // CYPHER 25 : allReduce (OPTIMISÉ)
-// ========================================
 // allReduce permet de vérifier la propriété croissante pendant la traversée du graphe.
 
 PROFILE
@@ -151,24 +149,3 @@ Batch size 128
 +----------------------+----+------------------------------------------------------------------------------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+------------------------+
 
 Total database accesses: 39904, total allocated memory: 3969016
-
-// ========================================
-// POINTS CLÉS POUR LE RAPPORT
-// ========================================
-
-/*
-ANALYSE COMPARATIVE DES PLANS D'EXÉCUTION
-
-1. MÉTRIQUES CLÉS
-   DB Hits:    16,340,381 (Cypher 5)  vs  39,904 (Cypher 25)     → 409x MOINS
-   Temps:      ~1,451 ms              vs  ~3.5 ms                → 415x PLUS RAPIDE
-   Rows:       320,799                vs  9,290                  → 34.5x MOINS
-   Mémoire:    25 KB                  vs  3.9 MB                 → Trade-off acceptable
-
-2. STRATÉGIES D'EXÉCUTION
-   Cypher 5:  VarLengthExpand génère 319,631 chemins → Apply+Anti filtre → 52 valides
-   Cypher 25: Repeat(Trail) avec pruning pendant traversée → 6,362 chemins valides
-
-   Confirme SIGMOD: reduce/all dans WHERE ne scale pas
-   Les deux requêtes retournent les 50 mêmes résultats (ORDER BY + LIMIT)
-*/

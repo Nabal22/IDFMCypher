@@ -1,9 +1,9 @@
 // Plus court chemin pondéré (distance)
 // JFK → DAY (John F. Kennedy Intl → Dayton Intl)
 
-// ------------------------------------------------------------
+//
 // CYPHER 5 - Tentative d'implémentation
-// ------------------------------------------------------------
+//
 
 // Version 1: shortestPath() - compte seulement les sauts (pas pondéré ne prend pas en compte la distance)
 MATCH path = shortestPath(
@@ -23,6 +23,7 @@ route,num_hops,total_distance
 // Version 2: Exploration exhaustive avec limite de profondeur
 // PROBLÈME: explore TOUS les chemins - complexité exponentielle
 // Timeout probable pour graphes avec beaucoup de nœuds/relations comme le notre
+
 MATCH path = (start:Airport {iata_code: 'JFK'})-[:FLIGHT*1..3]->(end:Airport {iata_code: 'DAY'})
 WITH path, reduce(dist = 0, r in relationships(path) | dist + r.distance) AS total_distance
 ORDER BY total_distance ASC
@@ -80,35 +81,3 @@ completed after 37 ms.
 
 // Nettoyage
 CALL gds.graph.drop('flights-weighted');
-
-
-/*
-================================================================================
-RÉSUMÉ POUR LE RAPPORT
-================================================================================
-
-
-EXPLOSION COMBINATOIRE
-
-Passer de 2 à 3 sauts: 293ms → 137s (facteur 467x)
-→ Croissance exponentielle = inutilisable au-delà de 2-3 sauts
-
-
-LIMITATIONS TECHNIQUES
-
-Cypher pur:
-- Pas de priority queue → impossible Dijkstra efficace
-- reduce() dans WHERE = NP-complet (SIGMOD)
-- allReduce améliore syntaxe mais pas complexité
-
-GDS:
-- Implémentation C++ optimisée
-- Priority queue native
-- Seule garantie d'optimalité + performance
-
-
-CONCLUSION
-
-Chemins pondérés (distance, delay, etc.) → GDS Dijkstra OBLIGATOIRE
-Chemins non pondérés (min sauts) → shortestPath() suffit
-*/
