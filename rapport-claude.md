@@ -463,3 +463,6 @@ Ce projet confirme empiriquement les résultats théoriques de l'article SIGMOD 
 
 5. **SQL n'est pas adapté aux path queries** : Plus verbeux, moins lisible, performances comparables à Cypher 5 (pas d'équivalent à `allReduce()`).
 
+---
+
+PDF du rapport généré avec [pandoc](https://pandoc.org/) depuis un fichier markdown.

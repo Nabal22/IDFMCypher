@@ -43,7 +43,7 @@ WHERE allReduce(
   prev_delay IS NOT NULL
 )
 RETURN
-  [n IN nodes(path) | n.iata_code] AS route,
+  [n IN nodes(path) | n.iata_code] AS route
 LIMIT 50;
 
 // Résultats Requêtes
